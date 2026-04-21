@@ -155,7 +155,4 @@ def get_suggestions():
     }), 200
 
 
-# Vercel Serverless Functions 入口
-from flask import Flask
-app = Flask(__name__)
-app.register_blueprint(ai_chat_bp)
+# 结尾 - Vercel 只使用 api/index.py 作为入口

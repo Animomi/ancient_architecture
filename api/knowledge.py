@@ -86,7 +86,4 @@ def get_featured_articles():
         return jsonify({'error': str(e)}), 500
 
 
-# Vercel Serverless Functions 入口
-from flask import Flask
-app = Flask(__name__)
-app.register_blueprint(knowledge_bp)
+# 结尾 - Vercel 只使用 api/index.py 作为入口

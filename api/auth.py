@@ -126,7 +126,4 @@ def get_current_user():
         return jsonify({'error': '未登录'}), 401
 
 
-# Vercel Serverless Functions 入口
-from flask import Flask
-app = Flask(__name__)
-app.register_blueprint(auth_bp)
+# 结尾 - Vercel 只使用 api/index.py 作为入口

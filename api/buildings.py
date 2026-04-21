@@ -73,10 +73,7 @@ def get_categories():
 def toggle_favorite(building_id):
     """收藏/取消收藏建筑"""
     try:
-        from supabase_client import supabase
-        from auth import get_current_user
-
-        # 获取当前用户
+        # 获取当前用户（直接调用 Supabase）
         auth_response = supabase.auth.get_user()
         if not auth_response.user:
             return jsonify({'error': '请先登录'}), 401
@@ -119,7 +116,4 @@ def get_3d_model(building_id):
         return jsonify({'error': str(e)}), 500
 
 
-# Vercel Serverless Functions 入口
-from flask import Flask
-app = Flask(__name__)
-app.register_blueprint(buildings_bp)
+# 结尾 - Vercel 只使用 api/index.py 作为入口
