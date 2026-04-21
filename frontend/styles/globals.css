@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-wood: #4A3728;
+    --color-gold: #D4AF37;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-wood-900 text-cream antialiased;
+  }
+}
+
+@layer components {
+  /* 按钮样式 */
+  .btn-primary {
+    @apply bg-gradient-to-r from-gold to-gold-light text-wood-900 font-semibold px-6 py-3 rounded-lg transition-all duration-300 hover:shadow-lg hover:shadow-gold/30 hover:scale-105;
+  }
+
+  .btn-secondary {
+    @apply border-2 border-gold text-gold px-6 py-3 rounded-lg transition-all duration-300 hover:bg-gold hover:text-wood-900;
+  }
+
+  /* 卡片样式 */
+  .card {
+    @apply bg-wood-800/80 backdrop-blur-sm rounded-xl border border-wood-600/30 shadow-xl;
+  }
+
+  /* 输入框样式 */
+  .input-field {
+    @apply w-full bg-wood-800/50 border border-wood-600/50 rounded-lg px-4 py-3 text-cream placeholder-wood-300/50 focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/20 transition-all duration-300;
+  }
+
+  /* 导航栏样式 */
+  .navbar {
+    @apply fixed top-0 left-0 right-0 z-50 bg-wood-900/95 backdrop-blur-md border-b border-wood-700/50;
+  }
+
+  /* 标题样式 */
+  .title-chinese {
+    @apply font-serif text-gold;
+  }
+}
+
+@layer utilities {
+  /* 文字渐变效果 */
+  .text-gradient-gold {
+    @apply bg-gradient-to-r from-gold via-gold-light to-gold bg-clip-text text-transparent;
+  }
+
+  /* 毛玻璃效果 */
+  .glass {
+    @apply bg-wood-800/60 backdrop-blur-lg border border-wood-600/30;
+  }
+
+  /* 悬停缩放效果 */
+  .hover\:scale-102:hover {
+    transform: scale(1.02);
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}

@@ -1,0 +1,59 @@
+# 依赖项
+node_modules/
+.pnp/
+.pnp.js
+
+# 构建输出
+.next/
+out/
+dist/
+build/
+
+# Vercel
+.vercel/
+
+# 环境变量
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# 操作系统
+.DS_Store
+Thumbs.db
+
+# 日志
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# TypeScript
+*.tsbuildinfo
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv
+venv/
+ENV/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Supabase
+.branches/
+
+# 测试覆盖率
+coverage/
