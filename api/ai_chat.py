@@ -153,3 +153,9 @@ def get_suggestions():
     return jsonify({
         'suggestions': suggestions
     }), 200
+
+
+# Vercel Serverless Functions 入口
+from flask import Flask
+app = Flask(__name__)
+app.register_blueprint(ai_chat_bp)

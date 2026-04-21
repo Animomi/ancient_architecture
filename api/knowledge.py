@@ -84,3 +84,9 @@ def get_featured_articles():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+# Vercel Serverless Functions 入口
+from flask import Flask
+app = Flask(__name__)
+app.register_blueprint(knowledge_bp)
