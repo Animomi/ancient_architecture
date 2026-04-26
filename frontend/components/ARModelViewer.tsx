@@ -35,19 +35,27 @@ function LoadingSpinner() {
 
 interface InteractiveModelProps {
   modelUrl: string
-  modelName: string
+  rotation: { x: number; y: number }
+  scale: number
   onScaleChange: (scale: number) => void
+  onPointerDown: (e: any) => void
 }
 
-function InteractiveModel({ modelUrl, modelName, onScaleChange }: InteractiveModelProps) {
+function InteractiveModel({
+  modelUrl,
+  rotation,
+  scale,
+  onScaleChange,
+  onPointerDown
+}: InteractiveModelProps) {
   const groupRef = useRef<THREE.Group>(null)
-  const [rotation, setRotation] = useState({ x: 0, y: 0 })
-  const [scale, setScale] = useState(1)
-  const lastTouchRef = useRef({ distance: 0, centerX: 0, centerY: 0 })
+  const lastTouchRef = useRef({ distance: 0 })
 
   useFrame(() => {
     if (groupRef.current) {
-      groupRef.current.rotation.y += 0.003
+      groupRef.current.rotation.x = rotation.x
+      groupRef.current.rotation.y = rotation.y
+      groupRef.current.scale.setScalar(scale)
     }
   })
 
@@ -58,54 +66,36 @@ function InteractiveModel({ modelUrl, modelName, onScaleChange }: InteractiveMod
     return Math.sqrt(dx * dx + dy * dy)
   }
 
-  const getTouchCenter = (touches: TouchList) => {
-    if (touches.length < 2) return { x: 0, y: 0 }
-    return {
-      x: (touches[0].clientX + touches[1].clientX) / 2,
-      y: (touches[0].clientY + touches[1].clientY) / 2
-    }
-  }
-
-  const handlePointerDown = useCallback((e: any) => {
-    e.stopPropagation()
-  }, [])
-
-  const handleWheel = useCallback((e: WheelEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    const newScale = Math.min(Math.max(scale - e.deltaY * 0.001, 0.3), 5)
-    setScale(newScale)
-    onScaleChange(newScale)
-  }, [scale, onScaleChange])
-
   useEffect(() => {
     const canvas = document.querySelector('canvas')
     if (!canvas) return
 
-    canvas.addEventListener('wheel', handleWheel, { passive: false })
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault()
+      const newScale = Math.min(Math.max(scale - e.deltaY * 0.001, 0.3), 5)
+      onScaleChange(newScale)
+    }
 
     const handleTouchStart = (e: TouchEvent) => {
       if (e.touches.length === 2) {
         lastTouchRef.current.distance = getTouchDistance(e.touches)
-        const center = getTouchCenter(e.touches)
-        lastTouchRef.current.centerX = center.x
-        lastTouchRef.current.centerY = center.y
       }
     }
 
     const handleTouchMove = (e: TouchEvent) => {
       if (e.touches.length === 2) {
         e.preventDefault()
-        e.stopPropagation()
         const currentDistance = getTouchDistance(e.touches)
-        const scaleFactor = currentDistance / lastTouchRef.current.distance
-        const newScale = Math.min(Math.max(scale * scaleFactor, 0.3), 5)
-        setScale(newScale)
-        onScaleChange(newScale)
+        if (lastTouchRef.current.distance > 0) {
+          const scaleFactor = currentDistance / lastTouchRef.current.distance
+          const newScale = Math.min(Math.max(scale * scaleFactor, 0.3), 5)
+          onScaleChange(newScale)
+        }
         lastTouchRef.current.distance = currentDistance
       }
     }
 
+    canvas.addEventListener('wheel', handleWheel, { passive: false })
     canvas.addEventListener('touchstart', handleTouchStart, { passive: false })
     canvas.addEventListener('touchmove', handleTouchMove, { passive: false })
 
@@ -114,13 +104,10 @@ function InteractiveModel({ modelUrl, modelName, onScaleChange }: InteractiveMod
       canvas.removeEventListener('touchstart', handleTouchStart)
       canvas.removeEventListener('touchmove', handleTouchMove)
     }
-  }, [scale, onScaleChange, handleWheel])
+  }, [scale, onScaleChange])
 
   return (
-    <group
-      ref={groupRef}
-      onPointerDown={handlePointerDown}
-    >
+    <group ref={groupRef} onPointerDown={onPointerDown}>
       <Suspense fallback={<LoadingSpinner />}>
         <ModelScene url={modelUrl} />
       </Suspense>
@@ -139,6 +126,7 @@ export default function ARModelViewer({ modelUrl, modelName }: ARModelViewerProp
   const [rotation, setRotation] = useState({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
   const lastMouseRef = useRef({ x: 0, y: 0 })
+  const autoRotateRef = useRef(true)
 
   useEffect(() => {
     if (typeof navigator !== 'undefined' && navigator.xr) {
@@ -152,6 +140,7 @@ export default function ARModelViewer({ modelUrl, modelName }: ARModelViewerProp
 
   const handleMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     setIsDragging(true)
+    autoRotateRef.current = false
     lastMouseRef.current = { x: e.clientX, y: e.clientY }
   }, [])
 
@@ -170,8 +159,22 @@ export default function ARModelViewer({ modelUrl, modelName }: ARModelViewerProp
     setIsDragging(false)
   }, [])
 
+  const handlePointerDown = useCallback((e: any) => {
+    e.stopPropagation()
+  }, [])
+
+  const handleScaleChange = useCallback((newScale: number) => {
+    setModelScale(newScale)
+  }, [])
+
+  const resetView = () => {
+    setRotation({ x: 0, y: 0 })
+    setModelScale(1)
+    autoRotateRef.current = true
+  }
+
   const startAR = async () => {
-    if (isARSupported) {
+    if (isARSupported && navigator.xr) {
       try {
         await navigator.xr.requestSession('immersive-ar', {
           requiredFeatures: ['hit-test'],
@@ -203,8 +206,10 @@ export default function ARModelViewer({ modelUrl, modelName }: ARModelViewerProp
         <directionalLight position={[-5, -5, -5]} intensity={0.5} />
         <InteractiveModel
           modelUrl={modelUrl}
-          modelName={modelName}
-          onScaleChange={setModelScale}
+          rotation={rotation}
+          scale={modelScale}
+          onScaleChange={handleScaleChange}
+          onPointerDown={handlePointerDown}
         />
       </Canvas>
 
@@ -214,14 +219,23 @@ export default function ARModelViewer({ modelUrl, modelName }: ARModelViewerProp
           <div className="text-white/60 text-xs">3D 交互模型</div>
         </div>
 
-        {isARSupported && (
+        <div className="flex gap-2">
           <button
-            onClick={startAR}
-            className="bg-gold hover:bg-gold-light text-wood-900 font-bold py-2 px-4 rounded-lg text-sm transition-colors"
+            onClick={resetView}
+            className="bg-black/70 hover:bg-black/90 backdrop-blur-sm rounded-lg px-3 py-2 text-white text-sm transition-colors"
           >
-            📱 启动 AR
+            🔄 重置
           </button>
-        )}
+
+          {isARSupported && (
+            <button
+              onClick={startAR}
+              className="bg-gold hover:bg-gold-light text-wood-900 font-bold py-2 px-4 rounded-lg text-sm transition-colors"
+            >
+              📱 启动 AR
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="absolute bottom-6 left-4 right-4 z-10">
@@ -240,7 +254,7 @@ export default function ARModelViewer({ modelUrl, modelName }: ARModelViewerProp
 
       <a
         href="/ar"
-        className="absolute top-4 right-32 bg-black/70 backdrop-blur-sm rounded-lg px-3 py-2 text-white text-sm hover:bg-black/90 transition-colors z-10"
+        className="absolute top-4 right-4 bg-black/70 backdrop-blur-sm rounded-lg px-3 py-2 text-white text-sm hover:bg-black/90 transition-colors z-10"
       >
         ← 返回
       </a>
