@@ -18,27 +18,54 @@ const buildingsAR = [
 
 function CameraARView({ modelUrl, modelName }: { modelUrl: string; modelName: string }) {
   const videoRef = useRef<HTMLVideoElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   const [isCameraActive, setIsCameraActive] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [modelScale, setModelScale] = useState(1)
   const [modelPosition, setModelPosition] = useState({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
+  const [initialPinchDistance, setInitialPinchDistance] = useState<number | null>(null)
+  const [initialScale, setInitialScale] = useState(1)
 
   useEffect(() => {
     let stream: MediaStream | null = null
 
     const startCamera = async () => {
       try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'environment' }
-        })
+        const constraints = [
+          { video: { facingMode: 'environment' } },
+          { video: { facingMode: 'user' } },
+          { video: true }
+        ]
+
+        let mediaStream = null
+        for (const constraint of constraints) {
+          try {
+            mediaStream = await navigator.mediaDevices.getUserMedia(constraint)
+            stream = mediaStream
+            break
+          } catch {
+            continue
+          }
+        }
+
+        if (!stream) {
+          throw new Error('无法访问任何摄像头')
+        }
+
         if (videoRef.current) {
           videoRef.current.srcObject = stream
           setIsCameraActive(true)
+          setError(null)
         }
       } catch (err) {
-        setError('无法访问摄像头，请确保已授予摄像头权限')
+        const isWechat = /MicroMessenger/i.test(navigator.userAgent)
+        if (isWechat) {
+          setError('请在微信中点击右上角「...」，选择「在浏览器中打开」以获得更好的 AR 体验')
+        } else {
+          setError('无法访问摄像头，请确保已授予摄像头权限')
+        }
       }
     }
 
@@ -51,40 +78,87 @@ function CameraARView({ modelUrl, modelName }: { modelUrl: string; modelName: st
     }
   }, [])
 
+  const getTouchDistance = (touches: React.TouchList) => {
+    if (touches.length < 2) return 0
+    const dx = touches[0].clientX - touches[1].clientX
+    const dy = touches[0].clientY - touches[1].clientY
+    return Math.sqrt(dx * dx + dy * dy)
+  }
+
   const handleTouchStart = (e: React.TouchEvent) => {
-    const touch = e.touches[0]
-    setDragStart({ x: touch.clientX - modelPosition.x, y: touch.clientY - modelPosition.y })
-    setIsDragging(true)
+    if (e.touches.length === 1) {
+      const touch = e.touches[0]
+      setDragStart({ x: touch.clientX - modelPosition.x, y: touch.clientY - modelPosition.y })
+      setIsDragging(true)
+    } else if (e.touches.length === 2) {
+      setIsDragging(false)
+      setInitialPinchDistance(getTouchDistance(e.touches))
+      setInitialScale(modelScale)
+    }
   }
 
   const handleTouchMove = (e: React.TouchEvent) => {
+    e.preventDefault()
+
+    if (e.touches.length === 1 && isDragging) {
+      const touch = e.touches[0]
+      setModelPosition({
+        x: touch.clientX - dragStart.x,
+        y: touch.clientY - dragStart.y
+      })
+    } else if (e.touches.length === 2 && initialPinchDistance !== null) {
+      const currentDistance = getTouchDistance(e.touches)
+      const scaleFactor = currentDistance / initialPinchDistance
+      const newScale = Math.min(Math.max(initialScale * scaleFactor, 0.3), 5)
+      setModelScale(newScale)
+    }
+  }
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    setIsDragging(false)
+    setInitialPinchDistance(null)
+  }
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setDragStart({ x: e.clientX - modelPosition.x, y: e.clientY - modelPosition.y })
+    setIsDragging(true)
+  }
+
+  const handleMouseMove = (e: React.MouseEvent) => {
     if (!isDragging) return
-    const touch = e.touches[0]
     setModelPosition({
-      x: touch.clientX - dragStart.x,
-      y: touch.clientY - dragStart.y
+      x: e.clientX - dragStart.x,
+      y: e.clientY - dragStart.y
     })
   }
 
-  const handleTouchEnd = () => {
+  const handleMouseUp = () => {
     setIsDragging(false)
   }
 
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault()
-    setModelScale(prev => Math.min(Math.max(prev - e.deltaY * 0.002, 0.2), 3))
+    setModelScale(prev => Math.min(Math.max(prev - e.deltaY * 0.001, 0.3), 5))
+  }
+
+  const resetView = () => {
+    setModelScale(1)
+    setModelPosition({ x: 0, y: 0 })
   }
 
   return (
-    <div className="relative w-full h-full bg-black overflow-hidden touch-none select-none">
+    <div ref={containerRef} className="relative w-full h-full bg-black overflow-hidden select-none">
       {error ? (
         <div className="absolute inset-0 flex items-center justify-center p-8">
-          <div className="text-center text-white">
+          <div className="text-center text-white max-w-sm">
             <div className="text-6xl mb-4">📷</div>
             <p className="text-red-400 mb-4">{error}</p>
-            <p className="text-white/60 text-sm">
-              请在浏览器设置中允许使用摄像头
-            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="bg-gold text-wood-900 px-6 py-2 rounded-lg font-medium hover:bg-gold-light transition-colors"
+            >
+              重试
+            </button>
           </div>
         </div>
       ) : (
@@ -96,49 +170,58 @@ function CameraARView({ modelUrl, modelName }: { modelUrl: string; modelName: st
             muted
             className="w-full h-full object-cover"
           />
-          
+
           <div
-            className="absolute pointer-events-none"
-            style={{
-              left: 0,
-              top: 0,
-              right: 0,
-              bottom: 0,
-            }}
+            className="absolute inset-0 pointer-events-auto"
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
             onWheel={handleWheel}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
           />
 
           <div
-            className="absolute pointer-events-auto cursor-grab active:cursor-grabbing transition-transform duration-75"
+            className="absolute pointer-events-none"
             style={{
               left: `calc(50% + ${modelPosition.x}px)`,
               top: `calc(50% + ${modelPosition.y}px)`,
               transform: `translate(-50%, -50%) scale(${modelScale})`,
             }}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
           >
             <ARModelViewer modelUrl={modelUrl} />
-            <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap bg-black/70 text-white text-xs px-3 py-1 rounded-full">
+            <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap bg-black/70 text-white text-xs px-3 py-1 rounded-full">
               {modelName}
             </div>
           </div>
 
-          <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
+          <div className="absolute top-4 left-4 right-4 flex justify-between items-start z-10">
             <div className="bg-black/70 backdrop-blur-sm rounded-lg px-4 py-2">
               <div className="text-white text-sm font-bold">{modelName}</div>
               <div className="text-white/60 text-xs">AR 增强现实</div>
             </div>
+            <button
+              onClick={resetView}
+              className="bg-black/70 backdrop-blur-sm rounded-lg px-4 py-2 text-white text-sm hover:bg-black/90 transition-colors"
+            >
+              🔄 重置
+            </button>
           </div>
 
-          <div className="absolute bottom-6 left-4 right-4">
+          <div className="absolute bottom-6 left-4 right-4 z-10">
             <div className="bg-black/70 backdrop-blur-sm rounded-lg px-4 py-3 text-white text-sm flex justify-center gap-6">
-              <span>👆 拖动移动</span>
+              <span>👆 单指拖动</span>
               <span>🤏 双指缩放</span>
+              <span>🔄 重置视角</span>
+            </div>
+          </div>
+
+          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-10">
+            <div className="bg-black/50 rounded-full px-3 py-1">
+              <span className="text-white text-xs">缩放: {Math.round(modelScale * 100)}%</span>
             </div>
           </div>
         </>
