@@ -276,7 +276,7 @@ export default function ThreeDPage() {
                     {building.modelUrl ? building.category : '模型准备中'}
                   </span>
                   <h3 className="text-lg font-serif font-bold text-gold mt-3 mb-2">
-                    {selectedBuilding?.id === building.id ? building.name : building.name}
+                    {building.name}
                     {building.modelUrl && <span className="ml-2 text-xs">✓</span>}
                   </h3>
                   <p className="text-cream/70 text-sm">
