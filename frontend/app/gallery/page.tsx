@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 
 // 颜色图集配置
@@ -13,7 +13,7 @@ const colorPalettes = [
   { id: 'grey', name: '青灰', gradient: 'linear-gradient(135deg, #708090 0%, #4A5568 100%)' },
 ]
 
-// 示例图集数据 - 等用户提供图片后替换
+// 示例图集数据
 const galleryImages = [
   { id: 1, title: '故宫太和殿', color: 'vermilion', image: 'https://images.unsplash.com/photo-1508804185872-d7badad00f7d?w=800&q=80' },
   { id: 2, title: '天坛祈年殿', color: 'gold', image: 'https://images.unsplash.com/photo-1547981609-4b6bfe67ca0b?w=800&q=80' },
@@ -26,7 +26,7 @@ const galleryImages = [
   { id: 9, title: '石窟佛像', color: 'grey', image: 'https://images.unsplash.com/photo-1587974928442-77dc3e0dba72?w=800&q=80' },
 ]
 
-export default function GalleryPage() {
+function GalleryContent() {
   const searchParams = useSearchParams()
   const [selectedColor, setSelectedColor] = useState<string | null>(null)
   const [selectedImage, setSelectedImage] = useState<typeof galleryImages[0] | null>(null)
@@ -44,13 +44,15 @@ export default function GalleryPage() {
 
   const handleColorSelect = (colorId: string | null) => {
     setSelectedColor(colorId)
-    const url = new URL(window.location.href)
-    if (colorId) {
-      url.searchParams.set('color', colorId)
-    } else {
-      url.searchParams.delete('color')
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href)
+      if (colorId) {
+        url.searchParams.set('color', colorId)
+      } else {
+        url.searchParams.delete('color')
+      }
+      window.history.pushState({}, '', url)
     }
-    window.history.pushState({}, '', url)
   }
 
   const handleImageClick = (image: typeof galleryImages[0]) => {
@@ -211,5 +213,21 @@ export default function GalleryPage() {
         </div>
       )}
     </div>
+  )
+}
+
+function GalleryLoading() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-wood-900 via-wood-800 to-wood-900 py-12 px-4 flex items-center justify-center">
+      <div className="text-cream/50">加载中...</div>
+    </div>
+  )
+}
+
+export default function GalleryPage() {
+  return (
+    <Suspense fallback={<GalleryLoading />}>
+      <GalleryContent />
+    </Suspense>
   )
 }

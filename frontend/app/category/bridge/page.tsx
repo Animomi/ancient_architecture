@@ -9,31 +9,37 @@ const bridgeData = {
   examples: [
     {
       name: '赵州桥',
+      slug: 'zhaozhou-bridge',
       description: '位于河北赵县，又名安济桥，建于隋代大业年间，是世界上现存最早、保存最完好的敞肩式石拱桥。',
       image: '/images/categories/bridge.jpg'
     },
     {
       name: '卢沟桥',
+      slug: 'lugou-bridge',
       description: '位于北京丰台，因桥上石狮众多而闻名，有"卢沟桥的石狮子——数不清"的歇后语，是"七七事变"的发生地。',
       image: '/images/categories/bridge.jpg'
     },
     {
       name: '洛阳桥',
+      slug: 'luoyang-bridge',
       description: '位于福建泉州，是宋代梁式石桥的代表作，建桥时采用的筏型基础和减水桩技术，开创了桥梁建筑史上的先河。',
       image: '/images/categories/bridge.jpg'
     },
     {
       name: '湘江风雨桥',
+      slug: 'xiangjiang-wind-rain-bridge',
       description: '广西程阳风雨桥是侗族桥梁建筑的代表，集桥、廊、亭于一体，不用一钉一铆，全凭榫卯连接。',
       image: '/images/categories/bridge.jpg'
     },
     {
       name: '宝带桥',
+      slug: 'baodai-bridge',
       description: '位于江苏苏州，始建于唐代，是江南最长的多孔石桥，全长317米，53孔，造型优美。',
       image: '/images/categories/bridge.jpg'
     },
     {
       name: '悬桥',
+      slug: 'luding-bridge',
       description: '四川泸定桥是著名的铁链悬桥，桥面铺板，两侧护栏，1935年红军长征"飞夺泸定桥"使其名垂青史。',
       image: '/images/categories/bridge.jpg'
     }

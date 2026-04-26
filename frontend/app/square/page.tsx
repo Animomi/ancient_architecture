@@ -15,7 +15,8 @@ import {
   toggleFollow,
   getFollowStatus,
   type Post,
-  type PostCategory
+  type PostCategory,
+  type VisitorProfile
 } from '@/lib/supabase-square'
 
 export default function SquarePage() {
@@ -30,7 +31,7 @@ export default function SquarePage() {
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set())
   const [collectedPosts, setCollectedPosts] = useState<Set<string>>(new Set())
   const [isFollowing, setIsFollowing] = useState(false)
-  const [targetProfile, setTargetProfile] = useState<any>(null)
+  const [targetProfile, setTargetProfile] = useState<VisitorProfile | null>(null)
   const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({})
   
   // 编辑用户名
@@ -81,8 +82,12 @@ export default function SquarePage() {
       setTargetProfile({
         visitor_id: post.visitor_id,
         username: post.username,
+        avatar_url: '',
         post_count: 0,
-        follower_count: 0
+        total_likes: 0,
+        total_collects: 0,
+        follower_count: 0,
+        following_count: 0
       })
     }
   }
