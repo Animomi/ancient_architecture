@@ -35,13 +35,16 @@ export default function Navbar() {
   const navLinks = [
     { href: '/home', label: '首页' },
     { href: '/categories', label: '建筑分类' },
+    { href: '/gallery', label: '图集欣赏' },
     { href: '/knowledge', label: '知识库' },
     { href: '/ai', label: 'AI 助手' },
     { href: '/3d', label: '3D 展示' },
+    { href: '/square', label: '游客广场' },
+    { href: '/chat', label: '聊天室' },
   ]
 
   return (
-    <nav className="navbar">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-[#2A1E16]/90 backdrop-blur-md border-b border-wood-700/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}

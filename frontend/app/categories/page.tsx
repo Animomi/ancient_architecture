@@ -1,83 +1,68 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
+import { useState } from 'react'
 
+// 建筑分类数据
 const architectureCategories = [
   {
     id: 1,
     name: '宫殿建筑',
+    slug: 'palace',
+    image: '/images/categories/palace.jpg',
     icon: '🏛️',
     description: '古代帝王居住理政的建筑群，以宏伟壮丽著称',
-    examples: ['故宫', '天坛', '颐和园'],
-    color: 'from-yellow-600/20 to-amber-600/20'
+    examples: ['故宫', '天坛', '颐和园']
   },
   {
     id: 2,
     name: '宗教建筑',
-    icon: '⛩️',
+    slug: 'religion',
+    image: '/images/categories/religious.jpg',
+    icon: '🛕',
     description: '佛教、道教等宗教场所的建筑艺术',
-    examples: ['寺庙', '道观', '石窟'],
-    color: 'from-red-600/20 to-orange-600/20'
+    examples: ['寺庙', '道观', '石窟']
   },
   {
     id: 3,
     name: '园林建筑',
+    slug: 'garden',
+    image: '/images/categories/garden.jpg',
     icon: '🏡',
     description: '私家园林与皇家园林的典范之作',
-    examples: ['苏州园林', '承德避暑山庄', '拙政园'],
-    color: 'from-green-600/20 to-emerald-600/20'
+    examples: ['苏州园林', '承德避暑山庄', '拙政园']
   },
   {
     id: 4,
     name: '民居建筑',
+    slug: 'residential',
+    image: '/images/categories/residential.jpg',
     icon: '🏠',
     description: '各地特色传统民居建筑',
-    examples: ['四合院', '徽派建筑', '吊脚楼'],
-    color: 'from-blue-600/20 to-cyan-600/20'
+    examples: ['四合院', '徽派建筑', '吊脚楼']
   },
   {
     id: 5,
     name: '长城关隘',
-    icon: '🏰',
+    slug: 'greatwall',
+    image: '/images/categories/greatwall.jpg',
+    icon: '🏯',
     description: '军事防御建筑的杰出代表',
-    examples: ['八达岭长城', '山海关', '嘉峪关'],
-    color: 'from-stone-600/20 to-zinc-600/20'
+    examples: ['八达岭长城', '山海关', '嘉峪关']
   },
   {
     id: 6,
     name: '桥梁建筑',
+    slug: 'bridge',
+    image: '/images/categories/bridge.jpg',
     icon: '🌉',
     description: '古代桥梁工程的智慧结晶',
-    examples: ['赵州桥', '卢沟桥', '永宁桥'],
-    color: 'from-slate-600/20 to-gray-600/20'
+    examples: ['赵州桥', '卢沟桥', '永宁桥']
   }
 ]
 
 export default function CategoriesPage() {
-  const [selectedCategory, setSelectedCategory] = useState<number | null>(null)
-  const [articles, setArticles] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    fetchArticles()
-  }, [])
-
-  const fetchArticles = async () => {
-    setLoading(true)
-    const { data } = await supabase
-      .from('articles')
-      .select('*')
-      .order('created_at', { ascending: false })
-    
-    if (data) setArticles(data)
-    setLoading(false)
-  }
-
-  const filteredArticles = selectedCategory
-    ? articles.filter(a => a.category_id === selectedCategory)
-    : articles
+  const [hoveredId, setHoveredId] = useState<number | null>(null)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-wood-900 via-wood-800 to-wood-900 py-12 px-4">
@@ -92,139 +77,65 @@ export default function CategoriesPage() {
           </p>
         </div>
 
-        {/* 分类卡片 */}
+        {/* 分类卡片网格 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
           {architectureCategories.map((category) => (
-            <button
+            <Link
               key={category.id}
-              onClick={() => setSelectedCategory(
-                selectedCategory === category.id ? null : category.id
-              )}
-              className={`card p-6 text-left transition-all duration-300 hover:scale-102 border-2 ${
-                selectedCategory === category.id
-                  ? 'border-gold shadow-lg shadow-gold/20'
-                  : 'border-transparent hover:border-wood-600/50'
-              }`}
+              href={`/category/${category.slug}`}
+              className="card overflow-hidden group cursor-pointer block"
+              onMouseEnter={() => setHoveredId(category.id)}
+              onMouseLeave={() => setHoveredId(null)}
             >
-              <div className={`inline-flex p-3 rounded-xl bg-gradient-to-br ${category.color} mb-4`}>
-                <span className="text-4xl">{category.icon}</span>
+              {/* 图片区域 */}
+              <div className="relative h-52 overflow-hidden">
+                <img
+                  src={category.image}
+                  alt={category.name}
+                  className={`w-full h-full object-cover transition-transform duration-500 ${
+                    hoveredId === category.id ? 'scale-110' : ''
+                  }`}
+                />
+                {/* 渐变遮罩 */}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#2A1E16] via-[#2A1E16]/40 to-transparent"></div>
+                {/* 分类图标 */}
+                <div className="absolute top-4 left-4 w-12 h-12 bg-[#2A1E16]/70 backdrop-blur-sm rounded-xl flex items-center justify-center text-2xl border border-gold/20">
+                  {category.icon}
+                </div>
+                {/* 悬停时的边框光效 */}
+                <div className={`absolute inset-0 border-2 border-gold/30 rounded-none transition-opacity duration-300 ${
+                  hoveredId === category.id ? 'opacity-100' : 'opacity-0'
+                }`}></div>
               </div>
-              <h3 className="text-xl font-serif font-bold text-gold mb-2">
-                {category.name}
-              </h3>
-              <p className="text-cream/70 text-sm mb-4">
-                {category.description}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {category.examples.map((example, idx) => (
-                  <span
-                    key={idx}
-                    className="text-xs bg-wood-700/50 text-cream/60 px-2 py-1 rounded"
-                  >
-                    {example}
-                  </span>
-                ))}
+
+              {/* 内容区域 */}
+              <div className="p-6">
+                <h3 className="text-xl font-serif font-bold text-gold mb-2 group-hover:text-gold-light transition-colors">
+                  {category.name}
+                </h3>
+                <p className="text-cream/70 text-sm mb-4 leading-relaxed">
+                  {category.description}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {category.examples.map((example, idx) => (
+                    <span
+                      key={idx}
+                      className="text-xs bg-wood-700/50 text-cream/80 px-3 py-1.5 rounded-full border border-wood-600/30 hover:border-gold/30 hover:text-gold transition-colors"
+                    >
+                      {example}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </button>
+            </Link>
           ))}
         </div>
 
-        {/* 筛选指示器 */}
-        {selectedCategory && (
-          <div className="flex items-center justify-between mb-6 p-4 card">
-            <div className="flex items-center gap-3">
-              <span className="text-gold">
-                {architectureCategories.find(c => c.id === selectedCategory)?.icon}
-              </span>
-              <span className="text-cream/80">
-                当前筛选: <span className="text-gold font-medium">
-                  {architectureCategories.find(c => c.id === selectedCategory)?.name}
-                </span>
-              </span>
-              <span className="text-cream/50">({filteredArticles.length} 篇文章)</span>
-            </div>
-            <button
-              onClick={() => setSelectedCategory(null)}
-              className="text-sm text-gold hover:text-gold-light transition-colors"
-            >
-              清除筛选
-            </button>
-          </div>
-        )}
-
-        {/* 文章列表 */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-serif font-bold text-gold mb-6">
-            {selectedCategory ? '分类文章' : '全部文章'}
-          </h2>
-          
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div key={i} className="card p-6 animate-pulse">
-                  <div className="h-40 bg-wood-700/50 rounded-lg mb-4"></div>
-                  <div className="h-6 bg-wood-700/50 rounded w-3/4 mb-3"></div>
-                  <div className="h-4 bg-wood-700/50 rounded w-full mb-2"></div>
-                  <div className="h-4 bg-wood-700/50 rounded w-2/3"></div>
-                </div>
-              ))}
-            </div>
-          ) : filteredArticles.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredArticles.map((article) => (
-                <Link
-                  key={article.id}
-                  href={`/knowledge?article=${article.id}`}
-                  className="card overflow-hidden group hover:scale-105 transition-transform duration-300"
-                >
-                  <div className="h-40 bg-gradient-to-br from-gold/20 to-wood-700/50 flex items-center justify-center">
-                    {article.cover_image ? (
-                      <img
-                        src={article.cover_image}
-                        alt={article.title}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-6xl opacity-50">📜</span>
-                    )}
-                  </div>
-                  <div className="p-6">
-                    <h3 className="text-lg font-serif font-bold text-gold mb-2 group-hover:text-gold-light transition-colors">
-                      {article.title}
-                    </h3>
-                    <p className="text-cream/70 text-sm line-clamp-2 mb-4">
-                      {article.summary || article.content?.slice(0, 100) + '...'}
-                    </p>
-                    <div className="flex items-center justify-between text-xs text-cream/50">
-                      <span>{new Date(article.created_at).toLocaleDateString('zh-CN')}</span>
-                      <span className="text-gold group-hover:translate-x-1 transition-transform">
-                        阅读 →
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <div className="card p-12 text-center">
-              <p className="text-6xl mb-4">📚</p>
-              <p className="text-cream/60 mb-4">
-                {selectedCategory 
-                  ? '该分类下暂无文章'
-                  : '暂无文章'
-                }
-              </p>
-              <Link href="/knowledge" className="text-gold hover:text-gold-light transition-colors">
-                去知识库添加 →
-              </Link>
-            </div>
-          )}
-        </div>
-
-        {/* 返回首页 */}
+        {/* 底部提示 */}
         <div className="text-center">
-          <Link href="/home" className="text-cream/60 hover:text-gold transition-colors">
-            ← 返回首页
+          <Link href="/home" className="text-cream/50 hover:text-gold transition-colors text-sm inline-flex items-center gap-2">
+            <span>←</span>
+            <span>返回首页</span>
           </Link>
         </div>
       </div>

@@ -2,51 +2,45 @@ import Link from 'next/link'
 
 export default function Home() {
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-wood-900 via-wood-800 to-wood-900">
-      <div className="text-center px-4">
-        {/* Logo 装饰 */}
-        <div className="mb-8 animate-fade-in">
-          <span className="text-6xl">🏯</span>
-        </div>
+    <main className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* 图片背景 */}
+      <div className="absolute inset-0 z-0">
+        <div
+          className="w-full h-full bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage: "url('/images/hero-bg.jpg')",
+          }}
+        />
+        <div className="absolute inset-0 bg-[#2A1E16]/[0.65]"></div>
+      </div>
 
-        {/* 主标题 */}
-        <h1 className="text-5xl md:text-7xl font-serif font-bold text-gradient-gold mb-4 animate-slide-up">
-          古建筑
-        </h1>
-
-        {/* 副标题 */}
-        <p className="text-xl md:text-2xl text-cream/80 mb-12 font-light animate-slide-up" style={{ animationDelay: '0.2s' }}>
-          中国传统建筑艺术展示平台
-        </p>
-
-        {/* 装饰线 */}
-        <div className="flex items-center justify-center gap-4 mb-12 animate-fade-in" style={{ animationDelay: '0.3s' }}>
-          <div className="w-16 h-px bg-gradient-to-r from-transparent via-gold to-transparent"></div>
-          <span className="text-gold text-2xl">☷</span>
-          <div className="w-16 h-px bg-gradient-to-r from-transparent via-gold to-transparent"></div>
+      {/* 内容层 */}
+      <div className="relative z-10 text-center px-4">
+        {/* 标题区域 */}
+        <div className="mb-16 animate-fade-in">
+          <h1 className="text-5xl md:text-6xl font-light text-gold mb-3 tracking-wide animate-slide-up">
+            探索古建筑之美
+          </h1>
+          <p className="text-base md:text-lg text-cream/70 font-light tracking-widest animate-slide-up" style={{ animationDelay: '0.15s' }}>
+            了解中国古代建筑的独特魅力与文化内涵
+          </p>
         </div>
 
         {/* 按钮组 */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up" style={{ animationDelay: '0.4s' }}>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up" style={{ animationDelay: '0.3s' }}>
           <Link
             href="/login"
-            className="btn-primary text-lg"
+            className="px-8 py-3 bg-gold text-[#2A1E16] font-medium rounded-lg transition-all duration-300 hover:bg-gold-light hover:scale-105 hover:shadow-lg hover:shadow-gold/30"
           >
-            登录
+            开始探索
           </Link>
           <Link
-            href="/register"
-            className="btn-secondary text-lg"
+            href="/knowledge"
+            className="px-8 py-3 bg-transparent border border-gold text-gold font-medium rounded-lg transition-all duration-300 hover:bg-gold/20"
           >
-            注册
+            学习知识
           </Link>
         </div>
-      </div>
-
-      {/* 背景装饰 */}
-      <div className="fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute top-20 left-10 w-64 h-64 bg-gold/5 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-gold/5 rounded-full blur-3xl"></div>
       </div>
     </main>
   )
