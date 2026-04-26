@@ -1,13 +1,12 @@
 'use client'
 
 import { Suspense, useRef, useState, useEffect, useCallback } from 'react'
-import { Canvas, useThree, useFrame } from '@react-three/fiber'
+import { Canvas, useFrame } from '@react-three/fiber'
 import { useGLTF, Html } from '@react-three/drei'
 import * as THREE from 'three'
 
 function ModelScene({ url }: { url: string }) {
   const { scene } = useGLTF(url)
-  const groupRef = useRef<THREE.Group>(null)
 
   useEffect(() => {
     const box = new THREE.Box3().setFromObject(scene)
@@ -42,27 +41,24 @@ interface InteractiveModelProps {
 
 function InteractiveModel({ modelUrl, modelName, onScaleChange }: InteractiveModelProps) {
   const groupRef = useRef<THREE.Group>(null)
-  const [isDragging, setIsDragging] = useState(false)
-  const [isPinching, setIsPinching] = useState(false)
   const [rotation, setRotation] = useState({ x: 0, y: 0 })
   const [scale, setScale] = useState(1)
-  const [lastTouchDistance, setLastTouchDistance] = useState(0)
-  const [lastTouchCenter, setLastTouchCenter] = useState({ x: 0, y: 0 })
+  const lastTouchRef = useRef({ distance: 0, centerX: 0, centerY: 0 })
 
   useFrame(() => {
-    if (groupRef.current && !isDragging && !isPinching) {
+    if (groupRef.current) {
       groupRef.current.rotation.y += 0.003
     }
   })
 
-  const getTouchDistance = (touches: React.TouchList) => {
+  const getTouchDistance = (touches: TouchList) => {
     if (touches.length < 2) return 0
     const dx = touches[0].clientX - touches[1].clientX
     const dy = touches[0].clientY - touches[1].clientY
     return Math.sqrt(dx * dx + dy * dy)
   }
 
-  const getTouchCenter = (touches: React.TouchList) => {
+  const getTouchCenter = (touches: TouchList) => {
     if (touches.length < 2) return { x: 0, y: 0 }
     return {
       x: (touches[0].clientX + touches[1].clientX) / 2,
@@ -70,95 +66,60 @@ function InteractiveModel({ modelUrl, modelName, onScaleChange }: InteractiveMod
     }
   }
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (e.touches.length === 2) {
-      setIsPinching(true)
-      setIsDragging(false)
-      setLastTouchDistance(getTouchDistance(e.touches))
-      const center = getTouchCenter(e.touches)
-      setLastTouchCenter(center)
-    } else {
-      setIsDragging(true)
-    }
-  }
+  const handlePointerDown = useCallback((e: any) => {
+    e.stopPropagation()
+  }, [])
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (e.touches.length === 2 && isPinching) {
-      const currentDistance = getTouchDistance(e.touches)
-      const scaleFactor = currentDistance / lastTouchDistance
-      const newScale = Math.min(Math.max(scale * scaleFactor, 0.3), 5)
-      setScale(newScale)
-      onScaleChange(newScale)
-      setLastTouchDistance(currentDistance)
-
-      const currentCenter = getTouchCenter(e.touches)
-      const deltaX = (currentCenter.x - lastTouchCenter.x) * 0.01
-      const deltaY = (currentCenter.y - lastTouchCenter.y) * 0.01
-      setRotation(prev => ({
-        x: prev.x + deltaY,
-        y: prev.y + deltaX
-      }))
-      setLastTouchCenter(currentCenter)
-    }
-  }
-
-  const handleTouchEnd = () => {
-    setIsDragging(false)
-    setIsPinching(false)
-  }
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true)
-  }
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (isDragging) {
-      setRotation(prev => ({
-        x: prev.y + e.movementY * 0.01,
-        y: prev.x + e.movementX * 0.01
-      }))
-    }
-  }
-
-  const handleMouseUp = () => {
-    setIsDragging(false)
-  }
-
-  const handleWheel = (e: React.WheelEvent) => {
+  const handleWheel = useCallback((e: WheelEvent) => {
     e.preventDefault()
+    e.stopPropagation()
     const newScale = Math.min(Math.max(scale - e.deltaY * 0.001, 0.3), 5)
     setScale(newScale)
     onScaleChange(newScale)
-  }
+  }, [scale, onScaleChange])
 
   useEffect(() => {
     const canvas = document.querySelector('canvas')
-    if (canvas) {
-      canvas.addEventListener('touchstart', handleTouchStart as any, { passive: false })
-      canvas.addEventListener('touchmove', handleTouchMove as any, { passive: false })
-      canvas.addEventListener('touchend', handleTouchEnd as any)
-      canvas.addEventListener('mousedown', handleMouseDown)
-      canvas.addEventListener('mousemove', handleMouseMove)
-      canvas.addEventListener('mouseup', handleMouseUp)
-      canvas.addEventListener('wheel', handleWheel, { passive: false })
+    if (!canvas) return
 
-      return () => {
-        canvas.removeEventListener('touchstart', handleTouchStart as any)
-        canvas.removeEventListener('touchmove', handleTouchMove as any)
-        canvas.removeEventListener('touchend', handleTouchEnd as any)
-        canvas.removeEventListener('mousedown', handleMouseDown)
-        canvas.removeEventListener('mousemove', handleMouseMove)
-        canvas.removeEventListener('mouseup', handleMouseUp)
-        canvas.removeEventListener('wheel', handleWheel)
+    canvas.addEventListener('wheel', handleWheel, { passive: false })
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        lastTouchRef.current.distance = getTouchDistance(e.touches)
+        const center = getTouchCenter(e.touches)
+        lastTouchRef.current.centerX = center.x
+        lastTouchRef.current.centerY = center.y
       }
     }
-  }, [isDragging, isPinching, scale, lastTouchDistance, lastTouchCenter])
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        e.preventDefault()
+        e.stopPropagation()
+        const currentDistance = getTouchDistance(e.touches)
+        const scaleFactor = currentDistance / lastTouchRef.current.distance
+        const newScale = Math.min(Math.max(scale * scaleFactor, 0.3), 5)
+        setScale(newScale)
+        onScaleChange(newScale)
+        lastTouchRef.current.distance = currentDistance
+      }
+    }
+
+    canvas.addEventListener('touchstart', handleTouchStart, { passive: false })
+    canvas.addEventListener('touchmove', handleTouchMove, { passive: false })
+
+    return () => {
+      canvas.removeEventListener('wheel', handleWheel)
+      canvas.removeEventListener('touchstart', handleTouchStart)
+      canvas.removeEventListener('touchmove', handleTouchMove)
+    }
+  }, [scale, onScaleChange, handleWheel])
 
   return (
     <group
       ref={groupRef}
-      rotation={[rotation.x, rotation.y, 0]}
-      scale={scale}
+      onPointerDown={handlePointerDown}
     >
       <Suspense fallback={<LoadingSpinner />}>
         <ModelScene url={modelUrl} />
@@ -174,8 +135,10 @@ interface ARModelViewerProps {
 
 export default function ARModelViewer({ modelUrl, modelName }: ARModelViewerProps) {
   const [isARSupported, setIsARSupported] = useState<boolean | null>(null)
-  const [isARActive, setIsARActive] = useState(false)
   const [modelScale, setModelScale] = useState(1)
+  const [rotation, setRotation] = useState({ x: 0, y: 0 })
+  const [isDragging, setIsDragging] = useState(false)
+  const lastMouseRef = useRef({ x: 0, y: 0 })
 
   useEffect(() => {
     if (typeof navigator !== 'undefined' && navigator.xr) {
@@ -187,15 +150,33 @@ export default function ARModelViewer({ modelUrl, modelName }: ARModelViewerProp
     }
   }, [])
 
+  const handleMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    setIsDragging(true)
+    lastMouseRef.current = { x: e.clientX, y: e.clientY }
+  }, [])
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDragging) return
+    const deltaX = e.clientX - lastMouseRef.current.x
+    const deltaY = e.clientY - lastMouseRef.current.y
+    setRotation(prev => ({
+      x: prev.x + deltaY * 0.01,
+      y: prev.y + deltaX * 0.01
+    }))
+    lastMouseRef.current = { x: e.clientX, y: e.clientY }
+  }, [isDragging])
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false)
+  }, [])
+
   const startAR = async () => {
     if (isARSupported) {
       try {
-        const session = await navigator.xr.requestSession('immersive-ar', {
+        await navigator.xr.requestSession('immersive-ar', {
           requiredFeatures: ['hit-test'],
           optionalFeatures: ['dom-overlay']
         })
-        setIsARActive(true)
-        session.addEventListener('end', () => setIsARActive(false))
       } catch (err) {
         console.error('Failed to start AR session:', err)
         setIsARSupported(false)
@@ -204,11 +185,18 @@ export default function ARModelViewer({ modelUrl, modelName }: ARModelViewerProp
   }
 
   return (
-    <div className="relative w-full h-full bg-gradient-to-b from-gray-900 to-black">
+    <div
+      className="relative w-full h-full bg-gradient-to-b from-gray-900 to-black select-none"
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
+      style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+    >
       <Canvas
         camera={{ fov: 50, position: [0, 0, 3] }}
         gl={{ antialias: true, alpha: true }}
-        style={{ background: 'transparent' }}
+        style={{ background: 'transparent', touchAction: 'none' }}
       >
         <ambientLight intensity={1.2} />
         <directionalLight position={[10, 10, 5]} intensity={1.5} />
@@ -226,7 +214,7 @@ export default function ARModelViewer({ modelUrl, modelName }: ARModelViewerProp
           <div className="text-white/60 text-xs">3D 交互模型</div>
         </div>
 
-        {isARSupported && !isARActive && (
+        {isARSupported && (
           <button
             onClick={startAR}
             className="bg-gold hover:bg-gold-light text-wood-900 font-bold py-2 px-4 rounded-lg text-sm transition-colors"
@@ -236,28 +224,13 @@ export default function ARModelViewer({ modelUrl, modelName }: ARModelViewerProp
         )}
       </div>
 
-      {isARSupported && (
-        <div className="absolute bottom-6 left-4 right-4 z-10">
-          <div className="bg-black/70 backdrop-blur-sm rounded-lg px-4 py-3 text-white text-sm flex justify-center gap-6">
-            <span>🖱️ 拖动旋转</span>
-            <span>🔍 滚轮缩放</span>
-            <span>📱 AR 模式</span>
-          </div>
+      <div className="absolute bottom-6 left-4 right-4 z-10">
+        <div className="bg-black/70 backdrop-blur-sm rounded-lg px-4 py-3 text-white text-sm flex justify-center gap-6">
+          <span>🖱️ 拖动旋转</span>
+          <span>🔍 滚轮缩放</span>
+          <span>🤏 双指缩放</span>
         </div>
-      )}
-
-      {!isARSupported && isARSupported !== null && (
-        <div className="absolute bottom-6 left-4 right-4 z-10">
-          <div className="bg-black/70 backdrop-blur-sm rounded-lg px-4 py-3 text-white text-sm flex justify-center gap-4">
-            <span>🖱️ 拖动旋转</span>
-            <span>🔍 滚轮缩放</span>
-            <span>🤏 双指缩放</span>
-          </div>
-          <div className="text-center mt-2 text-white/50 text-xs">
-            AR 功能需要在支持的浏览器中打开（Chrome Android 或 Safari iOS）
-          </div>
-        </div>
-      )}
+      </div>
 
       <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-10">
         <div className="bg-black/50 rounded-full px-3 py-1">
