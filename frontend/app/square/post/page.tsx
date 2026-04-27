@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { getCategories, createPost, type PostCategory } from '@/lib/supabase-square'
+import { getCategories, createPost, getCurrentUserId, type PostCategory } from '@/lib/supabase-square'
 
 export default function PostPage() {
   const router = useRouter()
@@ -13,6 +13,22 @@ export default function PostPage() {
   const [categories, setCategories] = useState<PostCategory[]>([])
   const [posting, setPosting] = useState(false)
   const [error, setError] = useState('')
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+
+  // 检查登录状态
+  useEffect(() => {
+    const checkLogin = async () => {
+      const userId = await getCurrentUserId()
+      if (!userId) {
+        setError('请先登录后再发帖')
+        setIsLoggedIn(false)
+      } else {
+        setIsLoggedIn(true)
+        setError('')
+      }
+    }
+    checkLogin()
+  }, [])
 
   // 加载分类
   useEffect(() => {
@@ -29,6 +45,13 @@ export default function PostPage() {
   // 提交帖子
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // 检查登录
+    const userId = await getCurrentUserId()
+    if (!userId) {
+      setError('请先登录后再发帖')
+      return
+    }
     
     if (!title.trim()) {
       setError('请输入帖子标题')
@@ -49,7 +72,7 @@ export default function PostPage() {
     const { data, error: postError } = await createPost(title.trim(), content.trim(), categoryId)
     
     if (postError) {
-      setError('发布失败，请重试')
+      setError(postError.message || '发布失败，请重试')
       setPosting(false)
       return
     }

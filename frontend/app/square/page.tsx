@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
@@ -8,15 +8,13 @@ import {
   getCategories,
   getBatchLikeStatus,
   getBatchCollectStatus,
-  getVisitorName,
-  setVisitorName,
-  getVisitorId,
-  getVisitorProfile,
+  toggleLike,
+  toggleCollect,
   toggleFollow,
   getFollowStatus,
+  getCurrentUserId,
   type Post,
-  type PostCategory,
-  type VisitorProfile
+  type PostCategory
 } from '@/lib/supabase-square'
 
 export default function SquarePage() {
@@ -26,18 +24,22 @@ export default function SquarePage() {
   const [posts, setPosts] = useState<Post[]>([])
   const [categories, setCategories] = useState<PostCategory[]>([])
   const [loading, setLoading] = useState(true)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   
   // 用户状态
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set())
   const [collectedPosts, setCollectedPosts] = useState<Set<string>>(new Set())
   const [isFollowing, setIsFollowing] = useState(false)
-  const [targetProfile, setTargetProfile] = useState<VisitorProfile | null>(null)
   const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({})
-  
-  // 编辑用户名
-  const [isEditingName, setIsEditingName] = useState(false)
-  const [tempName, setTempName] = useState('')
-  const nameInputRef = useRef<HTMLInputElement>(null)
+
+  // 检查登录状态
+  useEffect(() => {
+    const checkLogin = async () => {
+      const userId = await getCurrentUserId()
+      setCurrentUserId(userId)
+    }
+    checkLogin()
+  }, [])
 
   // 加载分类
   const loadCategories = async () => {
@@ -70,36 +72,25 @@ export default function SquarePage() {
     loadPosts()
   }, [selectedCategory])
 
-  // 加载目标用户资料
-  const loadTargetProfile = async (post: Post) => {
-    const { data: profile } = await getVisitorProfile(post.visitor_id)
-    if (profile) {
-      setTargetProfile(profile)
-      // 检查关注状态
-      const { isFollowing } = await getFollowStatus(post.visitor_id)
-      setIsFollowing(isFollowing)
-    } else {
-      setTargetProfile({
-        visitor_id: post.visitor_id,
-        username: post.username,
-        avatar_url: '',
-        post_count: 0,
-        total_likes: 0,
-        total_collects: 0,
-        follower_count: 0,
-        following_count: 0
-      })
+  // 加载目标用户资料并检查关注状态
+  const loadFollowStatus = async (post: Post) => {
+    if (!currentUserId || !post.author_id) {
+      setIsFollowing(false)
+      return
     }
+    const { isFollowing } = await getFollowStatus(post.author_id)
+    setIsFollowing(isFollowing)
   }
 
   // 选择帖子
   const handleSelectPost = async (post: Post) => {
     setSelectedPost(post)
-    await loadTargetProfile(post)
+    await loadFollowStatus(post)
   }
 
   // 格式化时间
-  const formatTime = (dateStr: string) => {
+  const formatTime = (dateStr: string | null) => {
+    if (!dateStr) return ''
     const date = new Date(dateStr)
     const now = new Date()
     const diff = now.getTime() - date.getTime()
@@ -126,50 +117,31 @@ export default function SquarePage() {
     
     setActionLoading(prev => ({ ...prev, [postId]: true }))
     
-    const { isLiked } = await toggleLikeInList(postId)
+    const { isLiked, error } = await toggleLike(postId)
     
-    setLikedPosts(prev => {
-      const newSet = new Set(prev)
-      if (isLiked) {
-        newSet.add(postId)
-      } else {
-        newSet.delete(postId)
+    if (!error) {
+      setLikedPosts(prev => {
+        const newSet = new Set(prev)
+        if (isLiked) {
+          newSet.add(postId)
+        } else {
+          newSet.delete(postId)
+        }
+        return newSet
+      })
+      
+      setPosts(prev => prev.map(p => 
+        p.id === postId 
+          ? { ...p, like_count: (p.like_count || 0) + (isLiked ? 1 : -1) }
+          : p
+      ))
+      
+      if (selectedPost?.id === postId) {
+        setSelectedPost(prev => prev ? { ...prev, like_count: (prev.like_count || 0) + (isLiked ? 1 : -1) } : null)
       }
-      return newSet
-    })
-    
-    setPosts(prev => prev.map(p => 
-      p.id === postId 
-        ? { ...p, like_count: p.like_count + (isLiked ? 1 : -1) }
-        : p
-    ))
-    
-    if (selectedPost?.id === postId) {
-      setSelectedPost(prev => prev ? { ...prev, like_count: prev.like_count + (isLiked ? 1 : -1) } : null)
     }
     
     setActionLoading(prev => ({ ...prev, [postId]: false }))
-  }
-
-  // 临时替代函数（需要从 supabase-square 导入）
-  const toggleLikeInList = async (postId: string) => {
-    const visitorId = getVisitorId()
-    const { supabase } = await import('@/lib/supabase')
-    
-    const { data: existing } = await supabase
-      .from('post_likes')
-      .select('id')
-      .eq('post_id', postId)
-      .eq('visitor_id', visitorId)
-      .single()
-    
-    if (existing) {
-      await supabase.from('post_likes').delete().eq('id', existing.id)
-      return { isLiked: false }
-    } else {
-      await supabase.from('post_likes').insert({ post_id: postId, visitor_id: visitorId })
-      return { isLiked: true }
-    }
   }
 
   // 收藏
@@ -179,81 +151,46 @@ export default function SquarePage() {
     
     setActionLoading(prev => ({ ...prev, [postId]: true }))
     
-    const { isCollected } = await toggleCollectInList(postId)
+    const { isCollected, error } = await toggleCollect(postId)
     
-    setCollectedPosts(prev => {
-      const newSet = new Set(prev)
-      if (isCollected) {
-        newSet.add(postId)
-      } else {
-        newSet.delete(postId)
+    if (!error) {
+      setCollectedPosts(prev => {
+        const newSet = new Set(prev)
+        if (isCollected) {
+          newSet.add(postId)
+        } else {
+          newSet.delete(postId)
+        }
+        return newSet
+      })
+      
+      setPosts(prev => prev.map(p => 
+        p.id === postId 
+          ? { ...p, collect_count: (p.collect_count || 0) + (isCollected ? 1 : -1) }
+          : p
+      ))
+      
+      if (selectedPost?.id === postId) {
+        setSelectedPost(prev => prev ? { ...prev, collect_count: (prev.collect_count || 0) + (isCollected ? 1 : -1) } : null)
       }
-      return newSet
-    })
-    
-    setPosts(prev => prev.map(p => 
-      p.id === postId 
-        ? { ...p, collect_count: p.collect_count + (isCollected ? 1 : -1) }
-        : p
-    ))
-    
-    if (selectedPost?.id === postId) {
-      setSelectedPost(prev => prev ? { ...prev, collect_count: prev.collect_count + (isCollected ? 1 : -1) } : null)
     }
     
     setActionLoading(prev => ({ ...prev, [postId]: false }))
   }
 
-  const toggleCollectInList = async (postId: string) => {
-    const visitorId = getVisitorId()
-    const { supabase } = await import('@/lib/supabase')
-    
-    const { data: existing } = await supabase
-      .from('post_collects')
-      .select('id')
-      .eq('post_id', postId)
-      .eq('visitor_id', visitorId)
-      .single()
-    
-    if (existing) {
-      await supabase.from('post_collects').delete().eq('id', existing.id)
-      return { isCollected: false }
-    } else {
-      await supabase.from('post_collects').insert({ post_id: postId, visitor_id: visitorId })
-      return { isCollected: true }
-    }
-  }
-
   // 关注
   const handleFollow = async () => {
-    if (!selectedPost || selectedPost.visitor_id === getVisitorId()) return
+    if (!selectedPost?.author_id) return
+    if (currentUserId === selectedPost.author_id) return
     
-    const { isFollowing: newStatus } = await toggleFollow(selectedPost.visitor_id)
+    const { isFollowing: newStatus } = await toggleFollow(selectedPost.author_id)
     setIsFollowing(newStatus)
-    setTargetProfile(prev => prev ? {
-      ...prev,
-      follower_count: prev.follower_count + (newStatus ? 1 : -1)
-    } : null)
   }
 
   // 私信
   const handleMessage = () => {
-    if (!selectedPost) return
-    router.push(`/chat?user=${selectedPost.visitor_id}`)
-  }
-
-  // 保存用户名
-  const handleSaveName = () => {
-    if (tempName.trim()) {
-      setVisitorName(tempName.trim())
-    }
-    setIsEditingName(false)
-  }
-
-  const handleEditName = () => {
-    setTempName(getVisitorName())
-    setIsEditingName(true)
-    setTimeout(() => nameInputRef.current?.focus(), 100)
+    if (!selectedPost?.author_id) return
+    router.push(`/chat?user=${selectedPost.author_id}`)
   }
 
   // 内容预览（截取前100字）
@@ -270,7 +207,7 @@ export default function SquarePage() {
           <div className="sticky top-20">
             {/* 发帖按钮 */}
             <Link
-              href="/square/post"
+              href={currentUserId ? "/square/post" : "/login"}
               className="block w-full btn-primary text-center mb-6"
             >
               + 发帖
@@ -283,27 +220,14 @@ export default function SquarePage() {
                   <span className="text-gold">👤</span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  {isEditingName ? (
-                    <div className="flex items-center gap-1">
-                      <input
-                        ref={nameInputRef}
-                        type="text"
-                        value={tempName}
-                        onChange={(e) => setTempName(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleSaveName()}
-                        className="input-field py-1 px-2 text-sm w-20"
-                      />
-                      <button onClick={handleSaveName} className="text-gold text-xs">✓</button>
-                    </div>
+                  {currentUserId ? (
+                    <div className="text-cream text-sm truncate">已登录用户</div>
                   ) : (
-                    <button
-                      onClick={handleEditName}
-                      className="text-cream text-sm truncate hover:text-gold transition-colors w-full text-left"
-                    >
-                      {getVisitorName()}
-                    </button>
+                    <Link href="/login" className="text-gold text-sm hover:text-gold-light">
+                      点击登录
+                    </Link>
                   )}
-                  <div className="text-cream/40 text-xs">游客 ID: {getVisitorId().slice(-6)}</div>
+                  <div className="text-cream/40 text-xs">游客广场</div>
                 </div>
               </div>
             </div>
@@ -345,7 +269,7 @@ export default function SquarePage() {
         <main className="flex-1 min-w-0 border-x border-wood-700/30">
           {/* 移动端顶部 */}
           <div className="lg:hidden p-4 flex items-center justify-between">
-            <Link href="/square/post" className="btn-primary text-sm py-2 px-4">
+            <Link href={currentUserId ? "/square/post" : "/login"} className="btn-primary text-sm py-2 px-4">
               + 发帖
             </Link>
             <button
@@ -385,7 +309,7 @@ export default function SquarePage() {
                     <span className="text-cream/70">👤</span>
                   </div>
                   <div>
-                    <div className="text-gold font-medium">{selectedPost.username}</div>
+                    <div className="text-gold font-medium">{selectedPost.author_name}</div>
                     <div className="text-cream/40 text-xs">{formatTime(selectedPost.created_at)}</div>
                   </div>
                 </div>
@@ -407,7 +331,7 @@ export default function SquarePage() {
                     }`}
                   >
                     <span>{likedPosts.has(selectedPost.id) ? '❤️' : '🤍'}</span>
-                    <span>{selectedPost.like_count}</span>
+                    <span>{selectedPost.like_count || 0}</span>
                   </button>
                   
                   <button
@@ -420,7 +344,7 @@ export default function SquarePage() {
                     }`}
                   >
                     <span>{collectedPosts.has(selectedPost.id) ? '⭐' : '☆'}</span>
-                    <span>{selectedPost.collect_count}</span>
+                    <span>{selectedPost.collect_count || 0}</span>
                   </button>
                 </div>
               </div>
@@ -463,7 +387,7 @@ export default function SquarePage() {
                 <div className="card p-8 text-center">
                   <div className="text-4xl mb-3">📝</div>
                   <div className="text-cream/70">暂无帖子，来发表第一篇吧</div>
-                  <Link href="/square/post" className="btn-primary mt-4 inline-block">
+                  <Link href={currentUserId ? "/square/post" : "/login"} className="btn-primary mt-4 inline-block">
                     去发帖
                   </Link>
                 </div>
@@ -499,14 +423,14 @@ export default function SquarePage() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 text-sm text-cream/50">
                           <span>👤</span>
-                          <span>{post.username}</span>
+                          <span>{post.author_name}</span>
                         </div>
                         <div className="flex items-center gap-4 text-sm">
                           <span className={likedPosts.has(post.id) ? 'text-red-400' : 'text-cream/50'}>
-                            ❤️ {post.like_count}
+                            ❤️ {post.like_count || 0}
                           </span>
                           <span className={collectedPosts.has(post.id) ? 'text-gold' : 'text-cream/50'}>
-                            ⭐ {post.collect_count}
+                            ⭐ {post.collect_count || 0}
                           </span>
                         </div>
                       </div>
@@ -530,48 +454,42 @@ export default function SquarePage() {
                   <div className="w-16 h-16 rounded-full bg-wood-700 flex items-center justify-center mx-auto mb-3">
                     <span className="text-2xl">👤</span>
                   </div>
-                  <div className="text-cream font-medium">{selectedPost.username}</div>
-                  <div className="text-cream/40 text-xs mt-1">ID: {selectedPost.visitor_id.slice(-6)}</div>
-                </div>
-                
-                {/* 统计数据 */}
-                <div className="grid grid-cols-2 gap-3 mb-4">
-                  <div className="text-center p-2 bg-wood-700/30 rounded-lg">
-                    <div className="text-gold font-bold">{targetProfile?.post_count || 0}</div>
-                    <div className="text-cream/50 text-xs">发帖</div>
-                  </div>
-                  <div className="text-center p-2 bg-wood-700/30 rounded-lg">
-                    <div className="text-gold font-bold">{targetProfile?.follower_count || 0}</div>
-                    <div className="text-cream/50 text-xs">粉丝</div>
-                  </div>
+                  <div className="text-cream font-medium">{selectedPost.author_name}</div>
+                  {selectedPost.author_id && (
+                    <div className="text-cream/40 text-xs mt-1">ID: {selectedPost.author_id.slice(-6)}</div>
+                  )}
                 </div>
                 
                 {/* 操作按钮 */}
                 <div className="space-y-2">
                   <button
                     onClick={handleFollow}
-                    disabled={selectedPost.visitor_id === getVisitorId()}
+                    disabled={!currentUserId || !selectedPost.author_id || currentUserId === selectedPost.author_id}
                     className={`w-full py-2 rounded-lg text-sm font-medium transition-colors ${
-                      selectedPost.visitor_id === getVisitorId()
+                      !currentUserId || !selectedPost.author_id
                         ? 'bg-wood-700/50 text-cream/30 cursor-not-allowed'
-                        : isFollowing
-                          ? 'bg-wood-700 text-cream/70 hover:bg-wood-600'
-                          : 'bg-gold/20 text-gold hover:bg-gold/30'
+                        : currentUserId === selectedPost.author_id
+                          ? 'bg-wood-700/50 text-cream/30 cursor-not-allowed'
+                          : isFollowing
+                            ? 'bg-wood-700 text-cream/70 hover:bg-wood-600'
+                            : 'bg-gold/20 text-gold hover:bg-gold/30'
                     }`}
                   >
-                    {selectedPost.visitor_id === getVisitorId() 
-                      ? '我自己' 
-                      : isFollowing 
-                        ? '已关注' 
-                        : '+ 关注'}
+                    {!currentUserId 
+                      ? '登录后关注' 
+                      : currentUserId === selectedPost.author_id 
+                        ? '我自己' 
+                        : isFollowing 
+                          ? '已关注' 
+                          : '+ 关注'}
                   </button>
                   
                   <button
                     onClick={handleMessage}
-                    disabled={selectedPost.visitor_id === getVisitorId()}
+                    disabled={!currentUserId || !selectedPost.author_id || currentUserId === selectedPost.author_id}
                     className="w-full py-2 rounded-lg text-sm font-medium bg-wood-700/50 text-cream/70 hover:bg-wood-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    💬 私信
+                    {!currentUserId ? '登录后私信' : '💬 私信'}
                   </button>
                 </div>
               </div>
