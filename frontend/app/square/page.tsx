@@ -200,8 +200,17 @@ export default function SquarePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-wood-900 via-wood-800 to-wood-900">
-      <div className="flex max-w-7xl mx-auto">
+    <div className="min-h-screen relative">
+      {/* 全屏背景图 */}
+      <div 
+        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: 'url(/images/square-bg.jpg)' }}
+      />
+      {/* 深色遮罩 */}
+      <div className="fixed inset-0 z-0 bg-gradient-to-br from-wood-900/85 via-wood-800/80 to-wood-900/85" />
+
+      {/* 内容层 */}
+      <div className="relative z-10 flex max-w-7xl mx-auto">
         {/* ========== 左侧栏：分类导航 ========== */}
         <aside className="w-56 flex-shrink-0 p-4 hidden lg:block">
           <div className="sticky top-20">
@@ -214,7 +223,7 @@ export default function SquarePage() {
             </Link>
             
             {/* 当前用户 */}
-            <div className="card p-4 mb-4">
+            <div className="bg-wood-900/80 backdrop-blur-md border border-wood-700/30 rounded-xl p-4 mb-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-gold/20 flex items-center justify-center">
                   <span className="text-gold">👤</span>
@@ -233,7 +242,7 @@ export default function SquarePage() {
             </div>
 
             {/* 分类列表 */}
-            <div className="card p-2">
+            <div className="bg-wood-900/80 backdrop-blur-md border border-wood-700/30 rounded-xl p-2">
               <h3 className="text-gold text-sm font-medium px-3 py-2">帖子分类</h3>
               <nav className="space-y-1">
                 <button
@@ -266,7 +275,7 @@ export default function SquarePage() {
         </aside>
 
         {/* ========== 中间栏：帖子列表 / 详情 ========== */}
-        <main className="flex-1 min-w-0 border-x border-wood-700/30">
+        <main className="flex-1 min-w-0 border-x border-wood-700/20">
           {/* 移动端顶部 */}
           <div className="lg:hidden p-4 flex items-center justify-between">
             <Link href={currentUserId ? "/square/post" : "/login"} className="btn-primary text-sm py-2 px-4">
@@ -290,10 +299,10 @@ export default function SquarePage() {
                 ← 返回列表
               </button>
               
-              <div className="card p-6">
+              <div className="bg-wood-900/85 backdrop-blur-md border border-wood-700/30 rounded-2xl p-6">
                 {/* 分类标签 */}
                 {selectedPost.category && (
-                  <span className="inline-block bg-gold/10 text-gold text-xs px-3 py-1 rounded-full mb-3">
+                  <span className="inline-block bg-gold/20 text-gold text-xs px-3 py-1 rounded-full mb-3">
                     {selectedPost.category.icon} {selectedPost.category.name}
                   </span>
                 )}
@@ -305,7 +314,7 @@ export default function SquarePage() {
                 
                 {/* 作者信息 */}
                 <div className="flex items-center gap-3 mb-6 pb-4 border-b border-wood-700/30">
-                  <div className="w-10 h-10 rounded-full bg-wood-700 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-full bg-wood-700/60 flex items-center justify-center">
                     <span className="text-cream/70">👤</span>
                   </div>
                   <div>
@@ -360,7 +369,7 @@ export default function SquarePage() {
                     className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm transition-colors ${
                       !selectedCategory 
                         ? 'bg-gold text-wood-900' 
-                        : 'bg-wood-700 text-cream/70'
+                        : 'bg-wood-700/60 text-cream/70'
                     }`}
                   >
                     全部
@@ -372,7 +381,7 @@ export default function SquarePage() {
                       className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm transition-colors flex items-center gap-1 ${
                         selectedCategory === cat.id 
                           ? 'bg-gold text-wood-900' 
-                          : 'bg-wood-700 text-cream/70'
+                          : 'bg-wood-700/60 text-cream/70'
                       }`}
                     >
                       <span>{cat.icon}</span>
@@ -382,9 +391,9 @@ export default function SquarePage() {
               </div>
 
               {loading ? (
-                <div className="card p-8 text-center text-cream/50">加载中...</div>
+                <div className="bg-wood-900/85 backdrop-blur-md border border-wood-700/30 rounded-xl p-8 text-center text-cream/50">加载中...</div>
               ) : posts.length === 0 ? (
-                <div className="card p-8 text-center">
+                <div className="bg-wood-900/85 backdrop-blur-md border border-wood-700/30 rounded-xl p-8 text-center">
                   <div className="text-4xl mb-3">📝</div>
                   <div className="text-cream/70">暂无帖子，来发表第一篇吧</div>
                   <Link href={currentUserId ? "/square/post" : "/login"} className="btn-primary mt-4 inline-block">
@@ -397,12 +406,12 @@ export default function SquarePage() {
                     <div
                       key={post.id}
                       onClick={() => handleSelectPost(post)}
-                      className="card p-4 cursor-pointer hover:border-gold/30 transition-all"
+                      className="bg-wood-900/85 backdrop-blur-md border border-wood-700/30 rounded-xl p-4 cursor-pointer hover:border-gold/40 hover:bg-wood-900/90 transition-all"
                     >
                       {/* 顶部：分类 + 时间 */}
                       <div className="flex items-center justify-between mb-2">
                         {post.category && (
-                          <span className="text-xs bg-gold/10 text-gold/80 px-2 py-0.5 rounded">
+                          <span className="text-xs bg-gold/15 text-gold/90 px-2 py-0.5 rounded">
                             {post.category.icon} {post.category.name}
                           </span>
                         )}
@@ -415,7 +424,7 @@ export default function SquarePage() {
                       </h3>
                       
                       {/* 预览 */}
-                      <p className="text-cream/60 text-sm line-clamp-2 mb-3">
+                      <p className="text-cream/70 text-sm line-clamp-2 mb-3">
                         {getPreview(post.content)}
                       </p>
                       
@@ -447,11 +456,11 @@ export default function SquarePage() {
           <div className="sticky top-20">
             {selectedPost ? (
               // 已选择帖子，显示作者信息
-              <div className="card p-4">
+              <div className="bg-wood-900/85 backdrop-blur-md border border-wood-700/30 rounded-xl p-4">
                 <h3 className="text-gold text-sm font-medium mb-4">帖子作者</h3>
                 
                 <div className="text-center mb-4">
-                  <div className="w-16 h-16 rounded-full bg-wood-700 flex items-center justify-center mx-auto mb-3">
+                  <div className="w-16 h-16 rounded-full bg-wood-700/60 flex items-center justify-center mx-auto mb-3">
                     <span className="text-2xl">👤</span>
                   </div>
                   <div className="text-cream font-medium">{selectedPost.author_name}</div>
@@ -467,12 +476,12 @@ export default function SquarePage() {
                     disabled={!currentUserId || !selectedPost.author_id || currentUserId === selectedPost.author_id}
                     className={`w-full py-2 rounded-lg text-sm font-medium transition-colors ${
                       !currentUserId || !selectedPost.author_id
-                        ? 'bg-wood-700/50 text-cream/30 cursor-not-allowed'
+                        ? 'bg-wood-700/40 text-cream/30 cursor-not-allowed'
                         : currentUserId === selectedPost.author_id
-                          ? 'bg-wood-700/50 text-cream/30 cursor-not-allowed'
+                          ? 'bg-wood-700/40 text-cream/30 cursor-not-allowed'
                           : isFollowing
-                            ? 'bg-wood-700 text-cream/70 hover:bg-wood-600'
-                            : 'bg-gold/20 text-gold hover:bg-gold/30'
+                            ? 'bg-wood-700/60 text-cream/70 hover:bg-wood-600'
+                            : 'bg-gold/25 text-gold hover:bg-gold/35'
                     }`}
                   >
                     {!currentUserId 
@@ -487,7 +496,7 @@ export default function SquarePage() {
                   <button
                     onClick={handleMessage}
                     disabled={!currentUserId || !selectedPost.author_id || currentUserId === selectedPost.author_id}
-                    className="w-full py-2 rounded-lg text-sm font-medium bg-wood-700/50 text-cream/70 hover:bg-wood-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full py-2 rounded-lg text-sm font-medium bg-wood-700/50 text-cream/80 hover:bg-wood-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {!currentUserId ? '登录后私信' : '💬 私信'}
                   </button>
@@ -495,12 +504,12 @@ export default function SquarePage() {
               </div>
             ) : (
               // 未选择帖子，显示广场信息
-              <div className="card p-4">
+              <div className="bg-wood-900/85 backdrop-blur-md border border-wood-700/30 rounded-xl p-4">
                 <h3 className="text-gold text-sm font-medium mb-4">游客广场</h3>
-                <p className="text-cream/60 text-sm mb-4">
+                <p className="text-cream/70 text-sm mb-4">
                   分享你对古建筑的见解与感悟，与志同道合的朋友交流讨论。
                 </p>
-                <div className="text-cream/40 text-xs">
+                <div className="text-cream/50 text-xs">
                   共 {posts.length} 篇帖子
                 </div>
               </div>
