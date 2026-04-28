@@ -19,73 +19,73 @@ const buildings3D = [
     id: 1,
     name: '太和殿',
     category: '宫殿建筑',
-    icon: '🏛️',
-    description: '紫禁城核心建筑，皇帝举行重大典礼的场所',
-    modelUrl: '/models/taihe-palace.glb'
+    description: '紫禁城核心建筑，皇帝举行重大典礼的场所，世界现存最大木质结构古建筑',
+    modelUrl: '/models/taihe-palace.glb',
+    image: '/images/buildings/taihe-palace.jpg'
   },
   {
     id: 2,
     name: '悬空寺',
     category: '宗教建筑',
-    icon: '🏔️',
-    description: '建在悬崖之上，半悬半空建筑奇观',
-    modelUrl: '/models/shanxixuankongsi.glb'
+    description: '建在悬崖之上，半悬半空建筑奇观，集险、奇、巧、俏于一身',
+    modelUrl: '/models/shanxixuankongsi.glb',
+    image: '/images/buildings/xuankongsi.jpg'
   },
   {
     id: 3,
     name: '彩塑供养菩萨',
     category: '雕塑艺术',
-    icon: '🎨',
-    description: '佛教艺术珍品，精美彩塑造像',
-    modelUrl: '/models/saisupusa.glb'
+    description: '佛教艺术珍品，精美彩塑造像，展现古代雕塑艺术的巅峰水准',
+    modelUrl: '/models/saisupusa.glb',
+    image: '/images/buildings/saisupusa.jpg'
   },
   {
     id: 4,
     name: '北京长城',
     category: '防御建筑',
-    icon: '🏯',
-    description: '世界文化遗产，中华民族的精神象征',
-    modelUrl: '/models/beijingchangchen.glb'
+    description: '世界文化遗产，中华民族的精神象征，人类文明史上伟大的建筑工程',
+    modelUrl: '/models/beijingchangchen.glb',
+    image: '/images/buildings/changcheng.jpg'
   },
   {
     id: 5,
     name: '黄鹤楼',
     category: '楼阁建筑',
-    icon: '🗼',
-    description: '江南三大名楼之一，崔颢诗中所咏之地',
-    modelUrl: '/models/huanghelou.glb'
+    description: '江南三大名楼之一，崔颢诗中所咏之地，千年文人墨客的精神寄托',
+    modelUrl: '/models/huanghelou.glb',
+    image: '/images/buildings/huanghelou.jpg'
   },
   {
     id: 6,
     name: '滕王阁',
     category: '楼阁建筑',
-    icon: '🏯',
-    description: '江南三大名楼之一，滕王阁序诞生地',
-    modelUrl: '/models/tengwangge.glb'
+    description: '江南三大名楼之一，滕王阁序诞生地，江南四大名楼之首',
+    modelUrl: '/models/tengwangge.glb',
+    image: '/images/buildings/tengwangge.jpg'
   },
   {
     id: 7,
     name: '四合院',
     category: '民居建筑',
-    icon: '🏠',
-    description: '北京传统民居的代表，四面围合院落',
-    modelUrl: '/models/siheyuan.glb'
+    description: '北京传统民居的代表，四面围合院落，体现中国礼制文化的建筑格局',
+    modelUrl: '/models/siheyuan.glb',
+    image: '/images/buildings/siheyuan.jpg'
   },
   {
     id: 8,
     name: '大雁塔',
     category: '塔式建筑',
-    icon: '🗼',
-    description: '唐代长安城的地标，玄奘译经藏经之处',
-    modelUrl: '/models/dayanta.glb'
+    description: '唐代长安城的地标，玄奘译经藏经之处，唐代楼阁式砖塔的典范',
+    modelUrl: '/models/dayanta.glb',
+    image: '/images/buildings/dayanta.jpg'
   },
   {
     id: 9,
     name: '廓如亭',
     category: '园林建筑',
-    icon: '🏡',
-    description: '中国最大的一座亭廊式建筑',
-    modelUrl: '/models/guoruting.glb'
+    description: '中国最大的一座亭廊式建筑，昆明湖畔标志性景观',
+    modelUrl: '/models/guoruting.glb',
+    image: '/images/buildings/guoruting.jpg'
   }
 ]
 
@@ -188,7 +188,6 @@ export default function ThreeDPage() {
                 ) : (
                   <div className="h-full flex items-center justify-center bg-gradient-to-b from-sky-900/50 to-wood-900">
                     <div className="text-center">
-                      <div className="text-9xl mb-4">{selectedBuilding.icon}</div>
                       <h2 className="text-3xl font-serif font-bold text-gold mb-2">
                         {selectedBuilding.name}
                       </h2>
@@ -232,7 +231,7 @@ export default function ThreeDPage() {
                         onClick={() => setShowARModal(true)}
                         className="btn-primary flex items-center gap-2"
                       >
-                        📱 AR 体验
+                        AR 体验
                       </button>
                     )}
                     <button
@@ -248,8 +247,7 @@ export default function ThreeDPage() {
           </div>
         ) : (
           <>
-            <div className="card p-8 mb-12 text-center">
-              <div className="text-6xl mb-4">🎮</div>
+            <div className="card p-8 mb-12 text-center border border-gold/10">
               <h3 className="text-xl font-serif font-bold text-gold mb-2">
                 选择一个建筑开始探索
               </h3>
@@ -258,35 +256,60 @@ export default function ThreeDPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
               {buildings3D.map((building) => (
                 <div
                   key={building.id}
-                  className="card p-6 hover:scale-105 transition-transform duration-300 group cursor-pointer"
+                  className="group relative overflow-hidden rounded-xl cursor-pointer transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-gold/10"
                   onClick={() => handleView3D(building)}
                 >
-                  <div className="text-5xl mb-4 group-hover:scale-110 transition-transform">
-                    {building.icon}
+                  {/* 建筑图片背景 */}
+                  <div className="relative aspect-[4/3] overflow-hidden">
+                    <img 
+                      src={building.image}
+                      alt={building.name}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                    {/* 渐变遮罩 */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-wood-900 via-wood-900/30 to-transparent"></div>
+
+                    {/* 右上角 3D 标识 */}
+                    {building.modelUrl && (
+                      <div className="absolute top-3 right-3 bg-gold/90 text-wood-900 px-2.5 py-1 rounded text-xs font-medium">
+                        3D
+                      </div>
+                    )}
+
+                    {/* Hover 展开描述 */}
+                    <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out">
+                      <p className="text-cream/90 text-sm leading-relaxed line-clamp-3">
+                        {building.description}
+                      </p>
+                      <div className="mt-3 flex items-center gap-2 text-gold text-sm">
+                        <span>进入 3D 展厅</span>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                        </svg>
+                      </div>
+                    </div>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded ${
-                    building.modelUrl 
-                      ? 'bg-gold/20 text-gold' 
-                      : 'bg-cream/10 text-cream/50'
-                  }`}>
-                    {building.modelUrl ? building.category : '模型准备中'}
-                  </span>
-                  <h3 className="text-lg font-serif font-bold text-gold mt-3 mb-2">
-                    {building.name}
-                    {building.modelUrl && <span className="ml-2 text-xs">✓</span>}
-                  </h3>
-                  <p className="text-cream/70 text-sm">
-                    {building.description}
-                  </p>
-                  <button className={`mt-4 text-sm transition-colors ${
-                    building.modelUrl ? 'text-gold group-hover:text-gold-light' : 'text-cream/40'
-                  }`}>
-                    {building.modelUrl ? '进入 3D 展厅 →' : '敬请期待'}
-                  </button>
+
+                  {/* 底部固定信息：名称 + 标签 */}
+                  <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-wood-900/95 to-transparent">
+                    <div className="flex items-end justify-between">
+                      <div>
+                        <span className="text-xs text-gold/90 bg-gold/15 px-2.5 py-0.5 rounded-full backdrop-blur-sm">
+                          {building.category}
+                        </span>
+                        <h3 className="text-lg font-serif font-bold text-cream mt-2 group-hover:text-gold transition-colors">
+                          {building.name}
+                        </h3>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
