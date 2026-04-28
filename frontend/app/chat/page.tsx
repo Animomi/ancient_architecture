@@ -156,15 +156,15 @@ function ChatPageContent() {
         >
           <div className={`max-w-[70%] ${isMe ? 'order-2' : 'order-1'}`}>
             <div
-              className={`px-4 py-2.5 rounded-2xl text-sm ${
+              className={`px-4 py-2.5 rounded-2xl text-sm shadow-lg ${
                 isMe
-                  ? 'bg-gold/20 text-cream rounded-br-md'
-                  : 'bg-wood-800/70 backdrop-blur-sm text-cream rounded-bl-md'
+                  ? 'bg-gradient-to-br from-gold/30 to-gold/20 text-cream rounded-br-md border border-gold/30'
+                  : 'bg-[#2A1E16]/[0.9] backdrop-blur-sm text-cream rounded-bl-md border border-gold/20 shadow-xl'
               }`}
             >
-              <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+              <p className="whitespace-pre-wrap break-words drop-shadow-sm">{msg.content}</p>
             </div>
-            <p className={`text-cream/50 text-xs mt-1 ${isMe ? 'text-right' : 'text-left'}`}>
+            <p className={`text-cream/70 text-xs mt-1.5 ${isMe ? 'text-right' : 'text-left'} drop-shadow-sm`}>
               {formatMessageTime(msg.created_at)}
             </p>
           </div>
@@ -180,8 +180,8 @@ function ChatPageContent() {
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: 'url(/images/chat-bg.jpg)' }}
       />
-      {/* 深色遮罩 */}
-      <div className="fixed inset-0 z-0 bg-gradient-to-br from-wood-900/85 via-wood-800/80 to-wood-900/85" />
+      {/* 深色遮罩 - 与网站整体风格一致，使用深棕色 #2A1E16 */}
+      <div className="fixed inset-0 z-0 bg-gradient-to-br from-[#1A120E]/[0.92] via-[#2A1E16]/[0.88] to-[#1A120E]/[0.92]" />
 
       {/* 内容层 */}
       <div className="relative z-10 flex flex-1">
@@ -189,7 +189,7 @@ function ChatPageContent() {
         {/* 未登录提示 */}
         {!isLoggedIn ? (
           <div className="flex-1 flex items-center justify-center">
-            <div className="bg-wood-900/85 backdrop-blur-md border border-wood-700/30 rounded-2xl p-8 text-center">
+            <div className="bg-[#1A120E]/[0.95] backdrop-blur-md border border-gold/20 rounded-2xl p-8 text-center shadow-2xl">
               <div className="text-6xl mb-4">🔒</div>
               <h3 className="text-xl font-serif text-gold mb-2">请先登录</h3>
               <p className="text-cream/60 text-sm mb-4">登录后才能使用私信功能</p>
@@ -200,9 +200,9 @@ function ChatPageContent() {
           </div>
         ) : (
         <>
-        {/* 左侧栏：会话列表 */}
-        <aside className={`w-72 flex-shrink-0 border-r border-wood-700/20 flex flex-col ${selectedConversation ? 'hidden md:flex' : 'flex'}`}>
-          <div className="p-4 border-b border-wood-700/20">
+        {/* 左侧栏：会话列表 - 使用更深的背景色和更明显的边框 */}
+        <aside className={`w-72 flex-shrink-0 border-r border-gold/20 flex flex-col bg-[#1A120E]/[0.75] ${selectedConversation ? 'hidden md:flex' : 'flex'}`}>
+          <div className="p-4 border-b border-gold/20 bg-[#1A120E]/[0.6]">
             <h2 className="text-lg font-serif font-bold text-gold">私信聊天</h2>
           </div>
 
@@ -230,25 +230,25 @@ function ChatPageContent() {
                 <div
                   key={conv.id}
                   onClick={() => handleSelectConversation(conv)}
-                  className={`p-4 cursor-pointer border-b border-wood-700/10 transition-colors flex items-center gap-3 ${
+                  className={`p-4 cursor-pointer border-b border-gold/10 transition-all duration-200 flex items-center gap-3 ${
                     selectedConversation?.id === conv.id
-                      ? 'bg-gold/15 border-l-2 border-l-gold'
-                      : 'hover:bg-wood-800/40'
+                      ? 'bg-gold/25 border-l-2 border-l-gold'
+                      : 'hover:bg-gold/15'
                   }`}
                 >
-                  <div className="w-12 h-12 rounded-full bg-wood-800/60 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
+                  <div className="w-12 h-12 rounded-full bg-[#2A1E16]/80 flex items-center justify-center flex-shrink-0 shadow-inner">
                     <span className="text-xl">👤</span>
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <span className="text-cream font-medium text-sm truncate">
+                      <span className="text-cream font-medium text-sm truncate drop-shadow-sm">
                         {conv.other_user?.display_name || conv.other_user?.user_id?.slice(-8) || '未知用户'}
                       </span>
-                      <span className="text-cream/40 text-xs flex-shrink-0">
+                      <span className="text-cream/50 text-xs flex-shrink-0">
                         {formatTime(conv.last_message_at)}
                       </span>
                     </div>
-                    <p className="text-cream/50 text-xs truncate mt-1">
+                    <p className="text-cream/60 text-xs truncate mt-1">
                       {conv.last_message || '暂无消息'}
                     </p>
                   </div>
@@ -259,41 +259,41 @@ function ChatPageContent() {
         </aside>
 
         {/* 中间栏：聊天窗口 */}
-        <main className={`flex-1 flex flex-col ${!selectedConversation ? 'hidden md:flex' : 'flex'}`}>
+        <main className={`flex-1 flex flex-col bg-[#1A120E]/[0.4] ${!selectedConversation ? 'hidden md:flex' : 'flex'}`}>
           {selectedConversation ? (
             <>
-              {/* 聊天头部 */}
-              <div className="p-4 border-b border-wood-700/20 flex items-center gap-3 bg-wood-900/50 backdrop-blur-sm">
+              {/* 聊天头部 - 更深的背景和更清晰的边框 */}
+              <div className="p-4 border-b border-gold/20 flex items-center gap-3 bg-[#1A120E]/[0.85] backdrop-blur-sm shadow-lg">
                 <button
                   onClick={() => setSelectedConversation(null)}
                   className="md:hidden text-cream/70 hover:text-gold mr-2"
                 >
                   ←
                 </button>
-                <div className="w-10 h-10 rounded-full bg-wood-800/60 backdrop-blur-sm flex items-center justify-center">
+                <div className="w-10 h-10 rounded-full bg-[#2A1E16]/80 flex items-center justify-center shadow-inner">
                   <span className="text-lg">👤</span>
                 </div>
                 <div>
-                  <div className="text-cream font-medium">
+                  <div className="text-cream font-medium drop-shadow-sm">
                     {selectedConversation.other_user?.display_name || selectedConversation.other_user?.user_id?.slice(-8) || '未知用户'}
                   </div>
-                  <div className="text-cream/40 text-xs">
+                  <div className="text-cream/60 text-xs">
                     {initLoading ? '创建对话中...' : '在线'}
                   </div>
                 </div>
               </div>
 
               {/* 消息列表 */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#1A120E]/[0.2]">
                 {initLoading ? (
-                  <div className="text-center text-cream/50 py-8">
+                  <div className="text-center text-cream/60 py-8">
                     <div className="animate-pulse">
                       <div className="text-3xl mb-2">💬</div>
                       <p className="text-sm">正在创建对话...</p>
                     </div>
                   </div>
                 ) : messages.length === 0 ? (
-                  <div className="text-center text-cream/50 py-8">
+                  <div className="text-center text-cream/60 py-8">
                     <div className="text-3xl mb-2">💬</div>
                     <p className="text-sm">开始聊天吧</p>
                   </div>
@@ -305,15 +305,15 @@ function ChatPageContent() {
                 )}
               </div>
 
-              {/* 输入框 */}
-              <form onSubmit={handleSend} className="p-4 border-t border-wood-700/20 bg-wood-900/50 backdrop-blur-sm">
+              {/* 输入框 - 更深的背景 */}
+              <form onSubmit={handleSend} className="p-4 border-t border-gold/20 bg-[#1A120E]/[0.9] backdrop-blur-sm shadow-lg">
                 <div className="flex items-center gap-3">
                   <input
                     type="text"
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     placeholder="输入消息..."
-                    className="input-field flex-1"
+                    className="flex-1 bg-[#2A1E16]/[0.95] border border-gold/30 rounded-lg px-4 py-3 text-cream placeholder-wood-300/50 focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/30 transition-all duration-300 shadow-inner"
                     disabled={sending || initLoading}
                   />
                   <button
@@ -328,7 +328,7 @@ function ChatPageContent() {
             </>
           ) : (
             <div className="flex-1 flex items-center justify-center">
-              <div className="bg-wood-900/85 backdrop-blur-md border border-wood-700/30 rounded-2xl p-8 text-center">
+              <div className="bg-[#1A120E]/[0.95] backdrop-blur-md border border-gold/20 rounded-2xl p-8 text-center shadow-2xl">
                 <div className="text-6xl mb-4">💬</div>
                 <h3 className="text-xl font-serif text-gold mb-2">私信聊天</h3>
                 <p className="text-cream/60 text-sm">选择一个对话开始聊天</p>
@@ -354,8 +354,8 @@ export default function ChatPage() {
           className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: 'url(/images/chat-bg.jpg)' }}
         />
-        <div className="fixed inset-0 z-0 bg-gradient-to-br from-wood-900/85 via-wood-800/80 to-wood-900/85" />
-        <div className="relative z-10 text-cream/50">加载中...</div>
+        <div className="fixed inset-0 z-0 bg-gradient-to-br from-[#1A120E]/[0.92] via-[#2A1E16]/[0.88] to-[#1A120E]/[0.92]" />
+        <div className="relative z-10 text-cream/60">加载中...</div>
       </div>
     }>
       <ChatPageContent />
