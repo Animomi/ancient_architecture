@@ -139,9 +139,6 @@ export default function HomePage() {
         {/* Hero Section */}
         <section className="relative py-20 px-4">
           <div className="max-w-7xl mx-auto text-center">
-            <div className="mb-6">
-              <span className="text-6xl animate-float">🏯</span>
-            </div>
             <h1 className="text-4xl md:text-6xl font-serif font-bold text-gradient-gold mb-4">
               探索古建筑之美
             </h1>

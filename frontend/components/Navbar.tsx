@@ -41,6 +41,7 @@ export default function Navbar() {
     { href: '/3d', label: '3D 展示' },
     { href: '/square', label: '游客广场' },
     { href: '/chat', label: '聊天室' },
+    { href: '/profile', label: '个人中心' },
   ]
 
   return (
@@ -49,8 +50,7 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <Link href="/home" className="flex items-center gap-2">
-              <span className="text-2xl">🏯</span>
+            <Link href="/home" className="flex items-center">
               <span className="text-xl font-serif font-bold text-gold">古建筑</span>
             </Link>
           </div>

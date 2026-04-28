@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { getCurrentUser } from './supabase'
 
 // ==================== 游客标识 ====================
 
@@ -90,27 +91,103 @@ export const createPost = async (title: string, content: string, categoryId: str
   const visitorId = getVisitorId()
   const username = getVisitorName()
   
+  // #region agent debug log
+  fetch('http://127.0.0.1:7464/ingest/d0370acf-0e49-4487-9b7c-abf162b0a30a', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json', 'X-Debug-Session-Id': '791e96'},
+    body: JSON.stringify({
+      sessionId: '791e96',
+      location: 'supabase-square.ts:createPost',
+      message: 'createPost 开始执行',
+      data: { title, categoryId, username, visitorId },
+      timestamp: Date.now(),
+      runId: 'initial-debug'
+    })
+  }).catch(() => {});
+  // #endregion
+  
+  // 获取当前登录用户
+  const { user } = await getCurrentUser()
+  
+  // #region agent debug log
+  fetch('http://127.0.0.1:7464/ingest/d0370acf-0e49-4487-9b7c-abf162b0a30a', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json', 'X-Debug-Session-Id': '791e96'},
+    body: JSON.stringify({
+      sessionId: '791e96',
+      location: 'supabase-square.ts:createPost:getUser',
+      message: '获取用户信息',
+      data: { 
+        userId: user?.id || null,
+        userEmail: user?.email || null,
+        userEmailPrefix: user?.email?.split('@')[0] || null,
+        userMeta: user?.user_metadata || null
+      },
+      timestamp: Date.now(),
+      runId: 'initial-debug'
+    })
+  }).catch(() => {});
+  // #endregion
+  
+  // 使用登录用户的ID和名称，或回退到游客ID和名称
+  const authorId = user?.id || null
+  const authorName = user?.email?.split('@')[0] || user?.user_metadata?.username || username
+  
+  const insertData = {
+    title,
+    content,
+    category_id: categoryId,
+    author_id: authorId,
+    author_name: authorName,
+    visitor_id: visitorId
+  }
+  
+  // #region agent debug log
+  fetch('http://127.0.0.1:7464/ingest/d0370acf-0e49-4487-9b7c-abf162b0a30a', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json', 'X-Debug-Session-Id': '791e96'},
+    body: JSON.stringify({
+      sessionId: '791e96',
+      location: 'supabase-square.ts:createPost:insert',
+      message: '准备插入数据',
+      data: { 
+        insertData,
+        authorNameLength: authorName?.length || 0,
+        authorId: authorId || 'null'
+      },
+      timestamp: Date.now(),
+      runId: 'initial-debug'
+    })
+  }).catch(() => {});
+  // #endregion
+  
   const { data, error } = await supabase
     .from('posts')
-    .insert({
-      title,
-      content,
-      category_id: categoryId,
-      username,
-      visitor_id: visitorId
-    })
+    .insert(insertData)
     .select('*, category:post_categories(*)')
     .single()
   
-  // 创建用户资料（如果不存在）
-  if (!error) {
-    await supabase
-      .from('visitor_profiles')
-      .upsert({
-        visitor_id: visitorId,
-        username
-      }, { onConflict: 'visitor_id' })
-  }
+  // #region agent debug log
+  fetch('http://127.0.0.1:7464/ingest/d0370acf-0e49-4487-9b7c-abf162b0a30a', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json', 'X-Debug-Session-Id': '791e96'},
+    body: JSON.stringify({
+      sessionId: '791e96',
+      location: 'supabase-square.ts:createPost:result',
+      message: '插入结果',
+      data: { 
+        success: !error,
+        errorMessage: error?.message || null,
+        errorDetails: error?.details || null,
+        errorHint: error?.hint || null,
+        errorCode: error?.code || null,
+        returnedId: data?.id || null
+      },
+      timestamp: Date.now(),
+      runId: 'initial-debug'
+    })
+  }).catch(() => {});
+  // #endregion
   
   return { data: data as Post, error }
 }
@@ -278,6 +355,57 @@ export const getBatchCollectStatus = async (postIds: string[]) => {
   
   const collectedPostIds = new Set(data?.map(d => d.post_id) || [])
   return { collectedPostIds }
+}
+
+// ==================== 帖子收藏/点赞列表 ====================
+
+// 获取用户点赞过的所有帖子
+export const getPostLikes = async () => {
+  const visitorId = getVisitorId()
+
+  const { data, error } = await supabase
+    .from('post_likes')
+    .select('post_id')
+    .eq('visitor_id', visitorId)
+
+  const likedPostIds = data?.map(d => d.post_id) || []
+  return { likedPostIds }
+}
+
+// 获取用户收藏过的所有帖子
+export const getPostCollects = async () => {
+  const visitorId = getVisitorId()
+
+  const { data, error } = await supabase
+    .from('post_collects')
+    .select('post_id')
+    .eq('visitor_id', visitorId)
+
+  const collectedPostIds = data?.map(d => d.post_id) || []
+  return { collectedPostIds }
+}
+
+// 获取用户关注的所有用户
+export const getFollowList = async (visitorId?: string) => {
+  const currentVisitorId = visitorId || getVisitorId()
+
+  const { data, error } = await supabase
+    .from('follows')
+    .select('following_id')
+    .eq('follower_id', currentVisitorId)
+
+  // 获取被关注用户的详细信息
+  if (data && data.length > 0) {
+    const followingIds = data.map(d => d.following_id)
+    const { data: profiles } = await supabase
+      .from('visitor_profiles')
+      .select('*')
+      .in('visitor_id', followingIds)
+
+    return { following: profiles || [] }
+  }
+
+  return { following: [] }
 }
 
 // ==================== 关注相关 ====================

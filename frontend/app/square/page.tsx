@@ -263,7 +263,13 @@ export default function SquarePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-wood-900 via-wood-800 to-wood-900">
+    <div className="min-h-screen" style={{
+      backgroundImage: `linear-gradient(to bottom, rgba(60, 50, 40, 0.78), rgba(70, 55, 45, 0.82)), 
+                        url('/images/square-bg.jpg')`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundAttachment: 'fixed',
+    }}>
       <div className="flex max-w-7xl mx-auto">
         {/* ========== 左侧栏：分类导航 ========== */}
         <aside className="w-56 flex-shrink-0 p-4 hidden lg:block">
@@ -271,16 +277,16 @@ export default function SquarePage() {
             {/* 发帖按钮 */}
             <Link
               href="/square/post"
-              className="block w-full btn-primary text-center mb-6"
+              className="block w-full text-center mb-6 px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-medium rounded-xl hover:from-amber-400 hover:to-amber-500 transition-all shadow-lg shadow-amber-900/30"
             >
               + 发帖
             </Link>
             
             {/* 当前用户 */}
-            <div className="card p-4 mb-4">
+            <div className="bg-[#3D2E20]/[0.88] backdrop-blur-md rounded-xl p-4 mb-4 border border-amber-700/30">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gold/20 flex items-center justify-center">
-                  <span className="text-gold">👤</span>
+                <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center">
+                  <span className="text-amber-400">👤</span>
                 </div>
                 <div className="flex-1 min-w-0">
                   {isEditingName ? (
@@ -293,12 +299,12 @@ export default function SquarePage() {
                         onKeyDown={(e) => e.key === 'Enter' && handleSaveName()}
                         className="input-field py-1 px-2 text-sm w-20"
                       />
-                      <button onClick={handleSaveName} className="text-gold text-xs">✓</button>
+                      <button onClick={handleSaveName} className="text-amber-400 text-xs">✓</button>
                     </div>
                   ) : (
                     <button
                       onClick={handleEditName}
-                      className="text-cream text-sm truncate hover:text-gold transition-colors w-full text-left"
+                      className="text-cream text-sm truncate hover:text-amber-400 transition-colors w-full text-left"
                     >
                       {getVisitorName()}
                     </button>
@@ -309,15 +315,15 @@ export default function SquarePage() {
             </div>
 
             {/* 分类列表 */}
-            <div className="card p-2">
-              <h3 className="text-gold text-sm font-medium px-3 py-2">帖子分类</h3>
+            <div className="bg-[#3D2E20]/[0.88] backdrop-blur-md rounded-xl p-2 border border-amber-700/30">
+              <h3 className="text-amber-400 text-sm font-medium px-3 py-2">帖子分类</h3>
               <nav className="space-y-1">
                 <button
                   onClick={() => { setSelectedCategory(null); setSelectedPost(null) }}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${
                     !selectedCategory 
-                      ? 'bg-gold/20 text-gold' 
-                      : 'text-cream/70 hover:bg-wood-700/50 hover:text-cream'
+                      ? 'bg-amber-500/30 text-amber-100' 
+                      : 'text-cream/80 hover:bg-[#4A3828]/60 hover:text-cream'
                   }`}
                 >
                   全部帖子
@@ -326,10 +332,10 @@ export default function SquarePage() {
                   <button
                     key={cat.id}
                     onClick={() => { setSelectedCategory(cat.id); setSelectedPost(null) }}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 ${
+                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all flex items-center gap-2 ${
                       selectedCategory === cat.id 
-                        ? 'bg-gold/20 text-gold' 
-                        : 'text-cream/70 hover:bg-wood-700/50 hover:text-cream'
+                        ? 'bg-amber-500/30 text-amber-100' 
+                        : 'text-cream/80 hover:bg-[#4A3828]/60 hover:text-cream'
                     }`}
                   >
                     <span>{cat.icon}</span>
@@ -342,15 +348,15 @@ export default function SquarePage() {
         </aside>
 
         {/* ========== 中间栏：帖子列表 / 详情 ========== */}
-        <main className="flex-1 min-w-0 border-x border-wood-700/30">
+        <main className="flex-1 min-w-0 border-x border-amber-700/20">
           {/* 移动端顶部 */}
           <div className="lg:hidden p-4 flex items-center justify-between">
-            <Link href="/square/post" className="btn-primary text-sm py-2 px-4">
+            <Link href="/square/post" className="text-sm py-2 px-4 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-medium rounded-lg">
               + 发帖
             </Link>
             <button
               onClick={() => setSelectedPost(null)}
-              className="text-cream/70 hover:text-gold"
+              className="text-cream/70 hover:text-amber-400"
             >
               ← 返回列表
             </button>
@@ -361,49 +367,49 @@ export default function SquarePage() {
             <div className="p-6">
               <button
                 onClick={() => setSelectedPost(null)}
-                className="text-cream/50 hover:text-gold text-sm mb-4 flex items-center gap-1"
+                className="text-cream/60 hover:text-amber-400 text-sm mb-4 flex items-center gap-1"
               >
                 ← 返回列表
               </button>
               
-              <div className="card p-6">
+              <div className="bg-[#3D2E20]/[0.88] backdrop-blur-md rounded-2xl p-6 border border-amber-700/30 shadow-xl">
                 {/* 分类标签 */}
                 {selectedPost.category && (
-                  <span className="inline-block bg-gold/10 text-gold text-xs px-3 py-1 rounded-full mb-3">
+                  <span className="inline-block bg-amber-500/20 text-amber-300 text-xs px-3 py-1 rounded-full mb-3">
                     {selectedPost.category.icon} {selectedPost.category.name}
                   </span>
                 )}
                 
                 {/* 标题 */}
-                <h1 className="text-2xl font-serif font-bold text-gold mb-4">
+                <h1 className="text-2xl font-serif font-bold text-amber-100 mb-4">
                   {selectedPost.title}
                 </h1>
                 
                 {/* 作者信息 */}
-                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-wood-700/30">
-                  <div className="w-10 h-10 rounded-full bg-wood-700 flex items-center justify-center">
+                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-amber-700/30">
+                  <div className="w-10 h-10 rounded-full bg-[#4A3828] flex items-center justify-center">
                     <span className="text-cream/70">👤</span>
                   </div>
                   <div>
-                    <div className="text-gold font-medium">{selectedPost.username}</div>
-                    <div className="text-cream/40 text-xs">{formatTime(selectedPost.created_at)}</div>
+                    <div className="text-amber-200 font-medium">{selectedPost.username}</div>
+                    <div className="text-cream/50 text-xs">{formatTime(selectedPost.created_at)}</div>
                   </div>
                 </div>
                 
                 {/* 内容 */}
-                <div className="text-cream/90 leading-relaxed whitespace-pre-wrap mb-6">
+                <div className="text-cream leading-relaxed whitespace-pre-wrap mb-6">
                   {selectedPost.content}
                 </div>
                 
                 {/* 互动按钮 */}
-                <div className="flex items-center gap-6 pt-4 border-t border-wood-700/30">
+                <div className="flex items-center gap-6 pt-4 border-t border-amber-700/30">
                   <button
                     onClick={() => handleLike(selectedPost.id)}
                     disabled={actionLoading[selectedPost.id]}
-                    className={`flex items-center gap-2 transition-colors ${
+                    className={`flex items-center gap-2 transition-all ${
                       likedPosts.has(selectedPost.id)
                         ? 'text-red-400'
-                        : 'text-cream/50 hover:text-red-400'
+                        : 'text-cream/60 hover:text-red-400'
                     }`}
                   >
                     <span>{likedPosts.has(selectedPost.id) ? '❤️' : '🤍'}</span>
@@ -413,10 +419,10 @@ export default function SquarePage() {
                   <button
                     onClick={() => handleCollect(selectedPost.id)}
                     disabled={actionLoading[selectedPost.id]}
-                    className={`flex items-center gap-2 transition-colors ${
+                    className={`flex items-center gap-2 transition-all ${
                       collectedPosts.has(selectedPost.id)
-                        ? 'text-gold'
-                        : 'text-cream/50 hover:text-gold'
+                        ? 'text-amber-400'
+                        : 'text-cream/60 hover:text-amber-400'
                     }`}
                   >
                     <span>{collectedPosts.has(selectedPost.id) ? '⭐' : '☆'}</span>
@@ -433,10 +439,10 @@ export default function SquarePage() {
                 <div className="flex gap-2 pb-2">
                   <button
                     onClick={() => setSelectedCategory(null)}
-                    className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm transition-colors ${
+                    className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm transition-all ${
                       !selectedCategory 
-                        ? 'bg-gold text-wood-900' 
-                        : 'bg-wood-700 text-cream/70'
+                        ? 'bg-amber-500 text-white' 
+                        : 'bg-[#3D2E20]/80 text-cream/70 border border-amber-700/30'
                     }`}
                   >
                     全部
@@ -445,10 +451,10 @@ export default function SquarePage() {
                     <button
                       key={cat.id}
                       onClick={() => setSelectedCategory(cat.id)}
-                      className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm transition-colors flex items-center gap-1 ${
+                      className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm transition-all flex items-center gap-1 ${
                         selectedCategory === cat.id 
-                          ? 'bg-gold text-wood-900' 
-                          : 'bg-wood-700 text-cream/70'
+                          ? 'bg-amber-500 text-white' 
+                          : 'bg-[#3D2E20]/80 text-cream/70 border border-amber-700/30'
                       }`}
                     >
                       <span>{cat.icon}</span>
@@ -458,12 +464,12 @@ export default function SquarePage() {
               </div>
 
               {loading ? (
-                <div className="card p-8 text-center text-cream/50">加载中...</div>
+                <div className="bg-[#3D2E20]/[0.88] backdrop-blur-md rounded-xl p-8 text-center text-cream/60 border border-amber-700/30">加载中...</div>
               ) : posts.length === 0 ? (
-                <div className="card p-8 text-center">
+                <div className="bg-[#3D2E20]/[0.88] backdrop-blur-md rounded-xl p-8 text-center border border-amber-700/30">
                   <div className="text-4xl mb-3">📝</div>
-                  <div className="text-cream/70">暂无帖子，来发表第一篇吧</div>
-                  <Link href="/square/post" className="btn-primary mt-4 inline-block">
+                  <div className="text-cream/80">暂无帖子，来发表第一篇吧</div>
+                  <Link href="/square/post" className="inline-block mt-4 px-6 py-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-medium rounded-lg hover:from-amber-400 hover:to-amber-500 transition-all">
                     去发帖
                   </Link>
                 </div>
@@ -473,39 +479,39 @@ export default function SquarePage() {
                     <div
                       key={post.id}
                       onClick={() => handleSelectPost(post)}
-                      className="card p-4 cursor-pointer hover:border-gold/30 transition-all"
+                      className="bg-[#3D2E20]/[0.88] backdrop-blur-md rounded-xl p-4 cursor-pointer hover:bg-[#4A3828]/90 transition-all border border-amber-700/30 hover:border-amber-500/40"
                     >
                       {/* 顶部：分类 + 时间 */}
                       <div className="flex items-center justify-between mb-2">
                         {post.category && (
-                          <span className="text-xs bg-gold/10 text-gold/80 px-2 py-0.5 rounded">
+                          <span className="text-xs bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded">
                             {post.category.icon} {post.category.name}
                           </span>
                         )}
-                        <span className="text-cream/40 text-xs">{formatTime(post.created_at)}</span>
+                        <span className="text-cream/50 text-xs">{formatTime(post.created_at)}</span>
                       </div>
                       
                       {/* 标题 */}
-                      <h3 className="text-lg font-serif font-medium text-gold mb-1 line-clamp-1">
+                      <h3 className="text-lg font-serif font-medium text-amber-100 mb-1 line-clamp-1">
                         {post.title}
                       </h3>
                       
                       {/* 预览 */}
-                      <p className="text-cream/60 text-sm line-clamp-2 mb-3">
+                      <p className="text-cream/70 text-sm line-clamp-2 mb-3">
                         {getPreview(post.content)}
                       </p>
                       
                       {/* 底部：作者 + 互动 */}
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-sm text-cream/50">
+                        <div className="flex items-center gap-2 text-sm text-cream/60">
                           <span>👤</span>
                           <span>{post.username}</span>
                         </div>
                         <div className="flex items-center gap-4 text-sm">
-                          <span className={likedPosts.has(post.id) ? 'text-red-400' : 'text-cream/50'}>
+                          <span className={likedPosts.has(post.id) ? 'text-red-400' : 'text-cream/60'}>
                             ❤️ {post.like_count}
                           </span>
-                          <span className={collectedPosts.has(post.id) ? 'text-gold' : 'text-cream/50'}>
+                          <span className={collectedPosts.has(post.id) ? 'text-amber-400' : 'text-cream/60'}>
                             ⭐ {post.collect_count}
                           </span>
                         </div>
@@ -523,26 +529,26 @@ export default function SquarePage() {
           <div className="sticky top-20">
             {selectedPost ? (
               // 已选择帖子，显示作者信息
-              <div className="card p-4">
-                <h3 className="text-gold text-sm font-medium mb-4">帖子作者</h3>
+              <div className="bg-[#3D2E20]/[0.88] backdrop-blur-md rounded-xl p-4 border border-amber-700/30">
+                <h3 className="text-amber-400 text-sm font-medium mb-4">帖子作者</h3>
                 
                 <div className="text-center mb-4">
-                  <div className="w-16 h-16 rounded-full bg-wood-700 flex items-center justify-center mx-auto mb-3">
+                  <div className="w-16 h-16 rounded-full bg-[#4A3828] flex items-center justify-center mx-auto mb-3">
                     <span className="text-2xl">👤</span>
                   </div>
                   <div className="text-cream font-medium">{selectedPost.username}</div>
-                  <div className="text-cream/40 text-xs mt-1">ID: {selectedPost.visitor_id.slice(-6)}</div>
+                  <div className="text-cream/50 text-xs mt-1">ID: {selectedPost.visitor_id ? selectedPost.visitor_id.slice(-6) : '未知'}</div>
                 </div>
                 
                 {/* 统计数据 */}
                 <div className="grid grid-cols-2 gap-3 mb-4">
-                  <div className="text-center p-2 bg-wood-700/30 rounded-lg">
-                    <div className="text-gold font-bold">{targetProfile?.post_count || 0}</div>
-                    <div className="text-cream/50 text-xs">发帖</div>
+                  <div className="text-center p-2 bg-[#4A3828]/50 rounded-lg">
+                    <div className="text-amber-400 font-bold">{targetProfile?.post_count || 0}</div>
+                    <div className="text-cream/60 text-xs">发帖</div>
                   </div>
-                  <div className="text-center p-2 bg-wood-700/30 rounded-lg">
-                    <div className="text-gold font-bold">{targetProfile?.follower_count || 0}</div>
-                    <div className="text-cream/50 text-xs">粉丝</div>
+                  <div className="text-center p-2 bg-[#4A3828]/50 rounded-lg">
+                    <div className="text-amber-400 font-bold">{targetProfile?.follower_count || 0}</div>
+                    <div className="text-cream/60 text-xs">粉丝</div>
                   </div>
                 </div>
                 
@@ -551,12 +557,12 @@ export default function SquarePage() {
                   <button
                     onClick={handleFollow}
                     disabled={selectedPost.visitor_id === getVisitorId()}
-                    className={`w-full py-2 rounded-lg text-sm font-medium transition-colors ${
+                    className={`w-full py-2 rounded-lg text-sm font-medium transition-all ${
                       selectedPost.visitor_id === getVisitorId()
-                        ? 'bg-wood-700/50 text-cream/30 cursor-not-allowed'
+                        ? 'bg-[#4A3828]/50 text-cream/40 cursor-not-allowed'
                         : isFollowing
-                          ? 'bg-wood-700 text-cream/70 hover:bg-wood-600'
-                          : 'bg-gold/20 text-gold hover:bg-gold/30'
+                          ? 'bg-[#4A3828] text-cream/80 hover:bg-[#5A4838]'
+                          : 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30'
                     }`}
                   >
                     {selectedPost.visitor_id === getVisitorId() 
@@ -569,7 +575,7 @@ export default function SquarePage() {
                   <button
                     onClick={handleMessage}
                     disabled={selectedPost.visitor_id === getVisitorId()}
-                    className="w-full py-2 rounded-lg text-sm font-medium bg-wood-700/50 text-cream/70 hover:bg-wood-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full py-2 rounded-lg text-sm font-medium bg-[#4A3828]/50 text-cream/80 hover:bg-[#4A3828] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     💬 私信
                   </button>
@@ -577,12 +583,12 @@ export default function SquarePage() {
               </div>
             ) : (
               // 未选择帖子，显示广场信息
-              <div className="card p-4">
-                <h3 className="text-gold text-sm font-medium mb-4">游客广场</h3>
-                <p className="text-cream/60 text-sm mb-4">
+              <div className="bg-[#3D2E20]/[0.88] backdrop-blur-md rounded-xl p-4 border border-amber-700/30">
+                <h3 className="text-amber-400 text-sm font-medium mb-4">游客广场</h3>
+                <p className="text-cream/70 text-sm mb-4">
                   分享你对古建筑的见解与感悟，与志同道合的朋友交流讨论。
                 </p>
-                <div className="text-cream/40 text-xs">
+                <div className="text-cream/50 text-xs">
                   共 {posts.length} 篇帖子
                 </div>
               </div>

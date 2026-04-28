@@ -212,20 +212,26 @@ export default function AiPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-wood-900 via-wood-800 to-wood-900 py-12 px-4">
+    <div className="min-h-screen pb-12 px-4" style={{
+      backgroundImage: `linear-gradient(to bottom, rgba(60, 50, 40, 0.75), rgba(70, 55, 45, 0.80)), 
+                        url('/images/ai-bg.jpg')`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundAttachment: 'fixed',
+    }}>
       <div className="max-w-4xl mx-auto">
         {/* 页面标题 */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-8 pt-12">
           <h1 className="text-4xl md:text-5xl font-serif font-bold text-gradient-gold mb-4">
             AI 古建筑助手
           </h1>
-          <p className="text-cream/60 max-w-xl mx-auto">
+          <p className="text-cream/80 max-w-xl mx-auto">
             询问任何关于中国传统建筑的问题，AI 将为你提供详细的解答
           </p>
         </div>
 
         {/* 聊天容器 */}
-        <div className="card overflow-hidden">
+        <div className="bg-[#3D2E20]/[0.88] backdrop-blur-md rounded-2xl overflow-hidden shadow-2xl border border-amber-700/30">
           {/* 消息列表 */}
           <div className="h-[500px] overflow-y-auto p-6 space-y-6">
             {messages.map((message, index) => (
@@ -236,11 +242,13 @@ export default function AiPage() {
                 <div
                   className={`max-w-[80%] rounded-2xl px-6 py-4 ${
                     message.role === 'user'
-                      ? 'bg-gold/20 text-cream'
-                      : 'bg-wood-700/50 text-cream/90'
+                      ? 'bg-gradient-to-br from-amber-600/40 to-amber-700/30 text-cream shadow-lg'
+                      : 'bg-[#4A3828]/80 text-cream backdrop-blur-sm'
                   }`}
                 >
-                  <div className="text-xs text-cream/50 mb-2">
+                  <div className={`text-xs mb-2 ${
+                    message.role === 'assistant' ? 'text-amber-300/80' : 'text-cream/60'
+                  }`}>
                     {message.role === 'assistant' ? '🤖 AI 助手' : '👤 你'} •{' '}
                     {message.timestamp.toLocaleTimeString('zh-CN', {
                       hour: '2-digit',
@@ -256,11 +264,11 @@ export default function AiPage() {
 
             {isTyping && (
               <div className="flex justify-start">
-                <div className="bg-wood-700/50 rounded-2xl px-6 py-4">
+                <div className="bg-[#4A3828]/80 backdrop-blur-sm rounded-2xl px-6 py-4 shadow-lg">
                   <div className="flex gap-2">
-                    <div className="w-2 h-2 bg-gold/60 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-gold/60 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-gold/60 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    <div className="w-2 h-2 bg-amber-400/80 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-amber-400/80 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 bg-amber-400/80 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                   </div>
                 </div>
               </div>
@@ -270,14 +278,14 @@ export default function AiPage() {
           </div>
 
           {/* 快捷问题 */}
-          <div className="px-6 py-4 border-t border-wood-700/50">
-            <p className="text-xs text-cream/50 mb-3">快捷问题：</p>
+          <div className="px-6 py-4 border-t border-amber-700/30 bg-[#2D1F15]/60">
+            <p className="text-xs text-amber-200/60 mb-3">快捷问题：</p>
             <div className="flex flex-wrap gap-2">
               {quickQuestions.map((q, i) => (
                 <button
                   key={i}
                   onClick={() => handleQuickQuestion(q)}
-                  className="text-xs bg-wood-700/50 text-cream/70 px-3 py-1.5 rounded-full hover:bg-gold/20 hover:text-gold transition-colors"
+                  className="text-xs bg-[#4A3828]/70 text-cream/90 px-3 py-1.5 rounded-full hover:bg-amber-600/50 hover:text-amber-50 transition-all border border-amber-600/20 hover:border-amber-500/40"
                 >
                   {q}
                 </button>
@@ -286,7 +294,7 @@ export default function AiPage() {
           </div>
 
           {/* 输入框 */}
-          <div className="p-6 border-t border-wood-700/50">
+          <div className="p-6 border-t border-amber-700/30 bg-[#2D1F15]/70">
             <div className="flex gap-4">
               <input
                 type="text"
@@ -294,12 +302,12 @@ export default function AiPage() {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                 placeholder="输入你的问题..."
-                className="input-field flex-1"
+                className="flex-1 px-5 py-3 bg-[#4A3828]/70 backdrop-blur-sm border border-amber-600/40 rounded-xl text-cream placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500/60 focus:border-amber-500/60 transition-all"
               />
               <button
                 onClick={handleSend}
                 disabled={!input.trim() || isTyping}
-                className="btn-primary px-6 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-medium rounded-xl hover:from-amber-400 hover:to-amber-500 transition-all shadow-lg shadow-amber-900/30 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 发送
               </button>
@@ -309,8 +317,8 @@ export default function AiPage() {
 
         {/* 返回链接 */}
         <div className="mt-8 text-center">
-          <Link href="/home" className="text-cream/60 hover:text-gold transition-colors">
-            ← 返回首页
+          <Link href="/home" className="text-amber-200/70 hover:text-amber-400 transition-colors inline-flex items-center gap-2">
+            <span>←</span> 返回首页
           </Link>
         </div>
       </div>

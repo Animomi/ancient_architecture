@@ -65,14 +65,20 @@ export default function CategoriesPage() {
   const [hoveredId, setHoveredId] = useState<number | null>(null)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-wood-900 via-wood-800 to-wood-900 py-12 px-4">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen" style={{
+      backgroundImage: `linear-gradient(to bottom, rgba(90, 75, 60, 0.60), rgba(100, 80, 65, 0.68)), 
+                        url('/images/categories-bg.jpg')`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundAttachment: 'fixed',
+    }}>
+      <div className="max-w-7xl mx-auto py-12 px-4">
         {/* 页面标题 */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-serif font-bold text-gradient-gold mb-4">
             建筑分类
           </h1>
-          <p className="text-cream/60 max-w-2xl mx-auto">
+          <p className="text-cream/85 max-w-2xl mx-auto">
             按照建筑类型浏览中国传统建筑，深入了解每种建筑的独特魅力
           </p>
         </div>
@@ -83,7 +89,7 @@ export default function CategoriesPage() {
             <Link
               key={category.id}
               href={`/category/${category.slug}`}
-              className="card overflow-hidden group cursor-pointer block"
+              className="bg-[#4A3828]/[0.85] backdrop-blur-md rounded-2xl overflow-hidden group cursor-pointer block border border-amber-500/30 hover:border-amber-400/50 transition-all duration-300 shadow-xl"
               onMouseEnter={() => setHoveredId(category.id)}
               onMouseLeave={() => setHoveredId(null)}
             >
@@ -97,30 +103,30 @@ export default function CategoriesPage() {
                   }`}
                 />
                 {/* 渐变遮罩 */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#2A1E16] via-[#2A1E16]/40 to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-[#4A3828] via-[#4A3828]/20 to-transparent"></div>
                 {/* 分类图标 */}
-                <div className="absolute top-4 left-4 w-12 h-12 bg-[#2A1E16]/70 backdrop-blur-sm rounded-xl flex items-center justify-center text-2xl border border-gold/20">
+                <div className="absolute top-4 left-4 w-12 h-12 bg-[#4A3828]/90 backdrop-blur-sm rounded-xl flex items-center justify-center text-2xl border border-amber-400/50">
                   {category.icon}
                 </div>
                 {/* 悬停时的边框光效 */}
-                <div className={`absolute inset-0 border-2 border-gold/30 rounded-none transition-opacity duration-300 ${
+                <div className={`absolute inset-0 border-2 border-amber-400/60 rounded-none transition-opacity duration-300 ${
                   hoveredId === category.id ? 'opacity-100' : 'opacity-0'
                 }`}></div>
               </div>
 
               {/* 内容区域 */}
               <div className="p-6">
-                <h3 className="text-xl font-serif font-bold text-gold mb-2 group-hover:text-gold-light transition-colors">
+                <h3 className="text-xl font-serif font-bold text-amber-100 mb-2 group-hover:text-amber-200 transition-colors">
                   {category.name}
                 </h3>
-                <p className="text-cream/70 text-sm mb-4 leading-relaxed">
+                <p className="text-cream/85 text-sm mb-4 leading-relaxed">
                   {category.description}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {category.examples.map((example, idx) => (
                     <span
                       key={idx}
-                      className="text-xs bg-wood-700/50 text-cream/80 px-3 py-1.5 rounded-full border border-wood-600/30 hover:border-gold/30 hover:text-gold transition-colors"
+                      className="text-xs bg-[#5A4838]/90 text-amber-200/95 px-3 py-1.5 rounded-full border border-amber-500/40 hover:border-amber-400/60 hover:text-amber-100 transition-colors"
                     >
                       {example}
                     </span>
@@ -133,7 +139,7 @@ export default function CategoriesPage() {
 
         {/* 底部提示 */}
         <div className="text-center">
-          <Link href="/home" className="text-cream/50 hover:text-gold transition-colors text-sm inline-flex items-center gap-2">
+          <Link href="/home" className="text-cream/80 hover:text-amber-400 transition-colors text-sm inline-flex items-center gap-2">
             <span>←</span>
             <span>返回首页</span>
           </Link>
