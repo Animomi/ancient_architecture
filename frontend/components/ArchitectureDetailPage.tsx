@@ -290,13 +290,17 @@ export default function ArchitectureDetailPage({ architecture }: { architecture:
                           <span className="text-amber-400 text-lg">🗺️</span>
                           <h3 className="text-sm font-medium text-amber-100">地图位置</h3>
                         </div>
-                        <p className="text-cream/50 text-xs">百度地图嵌入区域 · 后续配置API</p>
                       </div>
-                      <div className="aspect-[16/9] bg-[#3D2E20]/60 flex items-center justify-center">
-                        <div className="text-center">
-                          <span className="text-4xl mb-3 block">📌</span>
-                          <p className="text-cream/60 text-sm">地图加载区域</p>
-                        </div>
+                      {/* 地图占位图区域 */}
+                      <div className="relative aspect-[16/9] overflow-hidden">
+                        {/* 背景图片 */}
+                        <img
+                          src="/images/detail/forbidden-city-map-placeholder.png"
+                          alt="地图占位图"
+                          className="absolute inset-0 w-full h-full object-contain bg-[#3D2E20]/60"
+                        />
+                        {/* 渐变遮罩 */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-[#4A3828]/30 via-transparent to-[#3D2E20]/30 pointer-events-none" />
                       </div>
                     </div>
                   </div>

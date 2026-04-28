@@ -7,10 +7,11 @@ const forbiddenCityData = {
   tags: ['明清两代', '北京市', '宫殿建筑', '世界遗产'],
   coverImage: '/images/categories/palace.jpg',
   galleryImages: [
-    '/images/categories/palace.jpg',
-    '/images/categories/palace.jpg',
-    '/images/categories/palace.jpg',
-    '/images/categories/palace.jpg',
+    '/images/detail/forbidden-city-gallery-1.jpg', // TODO: 待上传图片替换 - 轮播图1
+    '/images/detail/forbidden-city-gallery-2.jpg', // TODO: 待上传图片替换 - 轮播图2
+    '/images/detail/forbidden-city-gallery-3.jpg', // TODO: 待上传图片替换 - 轮播图3
+    '/images/detail/forbidden-city-gallery-4.jpg', // TODO: 待上传图片替换 - 轮播图4
+    '/images/detail/forbidden-city-gallery-5.jpg', // TODO: 待上传图片替换 - 轮播图5
   ],
   overview: '故宫博物院位于北京中轴线的中心，是明清两代二十四位皇帝的皇宫，也是世界上现存规模最大、保存最完整的木质结构古建筑群。占地面积约72万平方米，建筑面积约15万平方米，拥有大小宫殿七十多座，房屋九千余间。故宫的建筑艺术体现了中国古代建筑的最高成就，红墙黄瓦、雕梁画栋，极尽奢华，体现了皇权的威严与中华文化的精髓。1961年被列为第一批全国重点文物保护单位，1987年被联合国教科文组织列入世界遗产名录。',
   history: [
