@@ -285,7 +285,7 @@ export default function ARPage() {
             <div>
               <h3 className="text-lg font-bold text-amber-400 mb-2">AR 体验方式</h3>
               <ul className="text-cream/70 text-sm space-y-2">
-                <li>• <strong className="text-amber-300">扫码体验：</strong>点击建筑卡片下方的"扫码 AR 体验"，显示二维码</li>
+                <li>• <strong className="text-amber-300">扫码体验：</strong>点击建筑卡片下方的&quot;扫码 AR 体验&quot;，显示二维码</li>
                 <li>• <strong className="text-amber-300">手机扫码：</strong>使用手机微信/支付宝扫描二维码</li>
                 <li>• <strong className="text-amber-300">AR 查看：</strong>手机将调用摄像头，对准建筑图片即可看到 AR 效果</li>
                 <li>• 建议在光线充足、环境简单的场所使用</li>
