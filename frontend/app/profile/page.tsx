@@ -211,7 +211,8 @@ export default function ProfilePage() {
     router.push('/')
   }
 
-  const formatTime = (dateStr: string) => {
+  const formatTime = (dateStr: string | null | undefined) => {
+    if (!dateStr) return '未知'
     const date = new Date(dateStr)
     const now = new Date()
     const diff = now.getTime() - date.getTime()

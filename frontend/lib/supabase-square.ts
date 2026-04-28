@@ -20,6 +20,103 @@ export const getCurrentUserProfile = async () => {
   return data
 }
 
+// ==================== 访客/用户标识相关 ====================
+
+// 获取访客ID（优先使用已登录用户ID，否则使用 localStorage）
+export const getVisitorId = (): string => {
+  if (typeof window === 'undefined') return ''
+  
+  // 优先使用已登录用户ID
+  const storedUserId = localStorage.getItem('supabase_user_id')
+  if (storedUserId) return storedUserId
+  
+  // 尝试获取认证用户
+  const userId = localStorage.getItem('sb-user-id') || localStorage.getItem('visitor_id')
+  if (userId) return userId
+  
+  // 生成新的访客ID并存储
+  const newVisitorId = 'visitor_' + Math.random().toString(36).substring(2, 15)
+  localStorage.setItem('visitor_id', newVisitorId)
+  return newVisitorId
+}
+
+// 获取访客名称
+export const getVisitorName = (): string | null => {
+  if (typeof window === 'undefined') return null
+  return localStorage.getItem('visitor_name')
+}
+
+// 设置访客名称
+export const setVisitorName = (name: string) => {
+  if (typeof window === 'undefined') return
+  localStorage.setItem('visitor_name', name)
+}
+
+// ==================== 点赞相关 ====================
+
+// 获取用户点赞的帖子ID列表
+export const getPostLikes = async (userId?: string) => {
+  if (typeof window === 'undefined') return { likedPostIds: [] }
+  
+  // 如果没有提供 userId，尝试从 localStorage 获取
+  const targetUserId = userId || localStorage.getItem('supabase_user_id')
+  if (!targetUserId) return { likedPostIds: [] }
+  
+  const { data, error } = await supabase
+    .from('post_likes')
+    .select('post_id')
+    .eq('user_id', targetUserId)
+  
+  const likedPostIds = data?.map(d => d.post_id) || []
+  return { likedPostIds }
+}
+
+// 获取用户收藏的帖子ID列表
+export const getPostCollects = async (userId?: string) => {
+  if (typeof window === 'undefined') return { collectedPostIds: [] }
+  
+  const targetUserId = userId || localStorage.getItem('supabase_user_id')
+  if (!targetUserId) return { collectedPostIds: [] }
+  
+  const { data, error } = await supabase
+    .from('post_collects')
+    .select('post_id')
+    .eq('user_id', targetUserId)
+  
+  const collectedPostIds = data?.map(d => d.post_id) || []
+  return { collectedPostIds }
+}
+
+// ==================== 关注相关 ====================
+
+// 获取用户的关注列表
+export const getFollowList = async (userId?: string) => {
+  if (typeof window === 'undefined') return { following: [] }
+  
+  const targetUserId = userId || localStorage.getItem('supabase_user_id')
+  if (!targetUserId) return { following: [] }
+  
+  const { data, error } = await supabase
+    .from('follows')
+    .select(`
+      following_id,
+      user_profiles!following_id (
+        user_id,
+        display_name,
+        avatar_url
+      )
+    `)
+    .eq('follower_id', targetUserId)
+  
+  const following = data?.map((d: any) => ({
+    visitor_id: d.following_id,
+    username: d.user_profiles?.display_name || d.following_id?.slice(-8),
+    avatar_url: d.user_profiles?.avatar_url
+  })) || []
+  
+  return { following }
+}
+
 // ==================== 帖子分类 ====================
 
 export interface PostCategory {
@@ -55,6 +152,10 @@ export interface Post {
   created_at: string | null
   updated_at: string | null
   category?: PostCategory
+  // 兼容字段名
+  username?: string
+  visitor_id?: string
+  author?: string
 }
 
 // 获取所有帖子（按时间倒序）
@@ -69,7 +170,14 @@ export const getPosts = async (categoryId?: string) => {
   }
   
   const { data, error } = await query
-  return { data: data as Post[], error }
+  // 添加兼容字段
+  const postsWithCompat = (data as Post[])?.map(post => ({
+    ...post,
+    username: post.author_name,
+    author: post.author_name,
+    visitor_id: post.author_id
+  })) || []
+  return { data: postsWithCompat as Post[], error }
 }
 
 // 获取单个帖子
