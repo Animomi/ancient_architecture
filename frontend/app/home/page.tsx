@@ -2,7 +2,17 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import { supabase } from '@/lib/supabase'
+
+const MiniModelViewer = dynamic(() => import('@/components/MiniModelViewer'), {
+  ssr: false,
+  loading: () => (
+    <div className="aspect-square rounded-2xl bg-gradient-to-br from-gold/20 to-transparent flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-3 border-gold border-t-transparent"></div>
+    </div>
+  )
+})
 
 // 古建筑数据
 const architectureTypes = [
@@ -368,11 +378,14 @@ export default function HomePage() {
                   进入 3D 展厅
                 </Link>
               </div>
-              <div className="relative">
-                <div className="aspect-square rounded-2xl bg-gradient-to-br from-gold/20 to-transparent flex items-center justify-center">
-                  <span className="text-9xl">🏯</span>
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl aspect-square w-full max-w-[500px] mx-auto lg:mx-0 lg:max-w-none">
+                <MiniModelViewer modelUrl="/models/siheyuan.glb" />
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-wood-900/80 backdrop-blur-sm px-4 py-1.5 rounded-full text-xs text-cream/70">
+                  旋转查看 · 四合院
                 </div>
-                <div className="absolute -inset-4 border border-gold/20 rounded-3xl -z-10"></div>
+                <div className="absolute top-3 right-3 bg-gold/20 backdrop-blur-sm px-3 py-1 rounded-full">
+                  <span className="text-gold text-xs">3D</span>
+                </div>
               </div>
             </div>
           </div>
