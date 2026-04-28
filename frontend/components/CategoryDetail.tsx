@@ -97,8 +97,8 @@ export default function CategoryDetail({ category }: CategoryDetailProps) {
               onMouseEnter={() => setHoveredIndex(index)}
               onMouseLeave={() => setHoveredIndex(null)}
             >
-              {/* 图片区域 */}
-              <div className="relative h-48 overflow-hidden">
+              {/* 图片区域 - 优化为全图覆盖 */}
+              <div className="relative h-56 overflow-hidden">
                 <img
                   src={example.image}
                   alt={example.name}
@@ -106,27 +106,28 @@ export default function CategoryDetail({ category }: CategoryDetailProps) {
                     hoveredIndex === index ? 'scale-110' : ''
                   }`}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#2A1E16] via-[#2A1E16]/30 to-transparent"></div>
+                {/* 深色渐变遮罩 - 底部文字区域 */}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#2A1E16]/95 via-[#2A1E16]/50 to-transparent"></div>
                 {/* 悬停边框效果 */}
-                <div className={`absolute inset-0 border-2 border-gold/30 transition-opacity duration-300 ${
+                <div className={`absolute inset-0 border-2 border-gold/40 transition-opacity duration-300 rounded-lg ${
                   hoveredIndex === index ? 'opacity-100' : 'opacity-0'
                 }`}></div>
-                {/* 查看详情按钮 */}
+                {/* 悬停时的查看详情按钮 */}
                 <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${
                   hoveredIndex === index ? 'opacity-100' : 'opacity-0'
                 }`}>
-                  <span className="bg-gold/90 text-wood-900 text-sm font-medium px-4 py-2 rounded-full">
+                  <span className="bg-gold/95 text-wood-900 text-sm font-semibold px-6 py-2.5 rounded-full shadow-lg hover:bg-gold hover:scale-105 transition-all">
                     查看详情
                   </span>
                 </div>
               </div>
 
-              {/* 内容区域 */}
-              <div className="p-5">
-                <h3 className="text-xl font-serif font-bold text-gold mb-2 group-hover:text-gold-light transition-colors">
+              {/* 内容区域 - 覆盖在图片底部 */}
+              <div className="relative -mt-20 p-5">
+                <h3 className="text-xl font-serif font-bold text-cream mb-2 group-hover:text-gold transition-colors drop-shadow-lg">
                   {example.name}
                 </h3>
-                <p className="text-cream/70 text-sm leading-relaxed">
+                <p className="text-cream/75 text-sm leading-relaxed drop-shadow-md">
                   {example.description}
                 </p>
               </div>
