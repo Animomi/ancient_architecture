@@ -9,7 +9,7 @@ import {
   getMessages,
   sendMessage,
   markMessagesAsRead,
-  getVisitorName,
+  getCurrentUserId,
   type ChatConversation,
   type ChatMessage
 } from '@/lib/supabase-square'
@@ -18,17 +18,16 @@ function ChatPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  
+
   const [conversations, setConversations] = useState<ChatConversation[]>([])
   const [selectedConversation, setSelectedConversation] = useState<ChatConversation | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
-  
-  const currentVisitorId = typeof window !== 'undefined' 
-    ? localStorage.getItem('visitor_id') || ''
-    : ''
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [initLoading, setInitLoading] = useState(false)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
   // 加载会话列表
   const loadConversations = async () => {
@@ -45,20 +44,31 @@ function ChatPageContent() {
     if (data) {
       setMessages(data)
     }
-    // 标记消息已读
     await markMessagesAsRead(conversationId)
   }
+
+  // 检查登录状态
+  useEffect(() => {
+    const checkLogin = async () => {
+      const userId = await getCurrentUserId()
+      setCurrentUserId(userId)
+      setIsLoggedIn(!!userId)
+    }
+    checkLogin()
+  }, [])
 
   // 初始化
   useEffect(() => {
     loadConversations()
-    
-    // 检查 URL 参数是否有指定用户
+  }, [])
+
+  // 检查 URL 参数是否有指定用户，自动创建/打开对话
+  useEffect(() => {
     const userParam = searchParams.get('user')
-    if (userParam) {
+    if (userParam && isLoggedIn) {
       initConversationWithUser(userParam)
     }
-  }, [searchParams])
+  }, [searchParams, isLoggedIn])
 
   // 选中会话时加载消息
   useEffect(() => {
@@ -74,14 +84,16 @@ function ChatPageContent() {
 
   // 与指定用户初始化对话
   const initConversationWithUser = async (userId: string) => {
-    const { data } = await getOrCreateConversation(userId)
-    if (data) {
+    setInitLoading(true)
+    const { data, error } = await getOrCreateConversation(userId)
+    if (data && !error) {
       setSelectedConversation(data)
-      // 如果会话列表中没有这个对话，添加到列表
-      if (!conversations.find(c => c.id === data.id)) {
-        loadConversations()
-      }
+      // 重新加载会话列表以包含新对话
+      await loadConversations()
+      // 清除 URL 参数
+      router.replace('/chat', { scroll: false })
     }
+    setInitLoading(false)
   }
 
   // 选择会话
@@ -94,54 +106,109 @@ function ChatPageContent() {
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newMessage.trim() || !selectedConversation || sending) return
-    
+
     setSending(true)
     const { data } = await sendMessage(selectedConversation.id, newMessage.trim())
     if (data) {
       setMessages(prev => [...prev, data])
       setNewMessage('')
-      // 更新会话列表
-      loadConversations()
+      await loadConversations()
     }
     setSending(false)
   }
 
   // 格式化时间
-  const formatTime = (dateStr: string) => {
+  const formatTime = (dateStr: string | null) => {
+    if (!dateStr) return ''
     const date = new Date(dateStr)
     const now = new Date()
     const diff = now.getTime() - date.getTime()
-    
+
     const minutes = Math.floor(diff / 60000)
     const hours = Math.floor(diff / 3600000)
     const days = Math.floor(diff / 86400000)
-    
+
     if (minutes < 1) return '刚刚'
     if (minutes < 60) return `${minutes}分钟前`
     if (hours < 24) return `${hours}小时前`
     if (days < 7) return `${days}天前`
-    
+
     return date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })
   }
 
   // 格式化消息时间
-  const formatMessageTime = (dateStr: string) => {
+  const formatMessageTime = (dateStr: string | null) => {
+    if (!dateStr) return ''
     const date = new Date(dateStr)
     return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
   }
 
+  // 渲染消息列表
+  const renderMessages = () => {
+    if (!selectedConversation) return null
+
+    return messages.map((msg) => {
+      const isMe = msg.sender_id === currentUserId
+      return (
+        <div
+          key={msg.id}
+          className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
+        >
+          <div className={`max-w-[70%] ${isMe ? 'order-2' : 'order-1'}`}>
+            <div
+              className={`px-4 py-2.5 rounded-2xl text-sm ${
+                isMe
+                  ? 'bg-gold/20 text-cream rounded-br-md'
+                  : 'bg-wood-700/50 text-cream rounded-bl-md'
+              }`}
+            >
+              <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+            </div>
+            <p className={`text-cream/40 text-xs mt-1 ${isMe ? 'text-right' : 'text-left'}`}>
+              {formatMessageTime(msg.created_at)}
+            </p>
+          </div>
+        </div>
+      )
+    })
+  }
+
   return (
     <div className="h-[calc(100vh-4rem)] flex bg-gradient-to-br from-wood-900 via-wood-800 to-wood-900">
-      {/* ========== 左侧栏：会话列表 ========== */}
+      {/* 未登录提示 */}
+      {!isLoggedIn ? (
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="text-6xl mb-4">🔒</div>
+            <h3 className="text-xl font-serif text-gold mb-2">请先登录</h3>
+            <p className="text-cream/50 text-sm mb-4">登录后才能使用私信功能</p>
+            <Link href="/login" className="btn-primary inline-block">
+              去登录
+            </Link>
+          </div>
+        </div>
+      ) : (
+      <>
+      {/* 左侧栏：会话列表 */}
       <aside className={`w-72 flex-shrink-0 border-r border-wood-700/30 flex flex-col ${selectedConversation ? 'hidden md:flex' : 'flex'}`}>
         <div className="p-4 border-b border-wood-700/30">
           <h2 className="text-lg font-serif font-bold text-gold">私信聊天</h2>
         </div>
-        
+
+        {/* 初始化新对话提示 */}
+        {initLoading && (
+          <div className="p-3 mx-3 mt-3 bg-gold/10 border border-gold/30 rounded-lg">
+            <div className="flex items-center gap-2 text-gold text-sm">
+              <div className="animate-spin w-4 h-4 border-2 border-gold border-t-transparent rounded-full"></div>
+              正在创建对话...
+            </div>
+          </div>
+        )}
+
         <div className="flex-1 overflow-y-auto">
           {loading ? (
             <div className="p-4 text-center text-cream/50">加载中...</div>
-          ) : conversations.length === 0 ? (
+          ) : conversations.length === 0 && !initLoading ? (
             <div className="p-4 text-center text-cream/50">
               <div className="text-3xl mb-2">💬</div>
               <p className="text-sm">暂无私信对话</p>
@@ -164,7 +231,7 @@ function ChatPageContent() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
                     <span className="text-cream font-medium text-sm truncate">
-                      {conv.other_user?.username || conv.other_user?.visitor_id || '未知用户'}
+                      {conv.other_user?.display_name || conv.other_user?.user_id?.slice(-8) || '未知用户'}
                     </span>
                     <span className="text-cream/40 text-xs flex-shrink-0">
                       {formatTime(conv.last_message_at)}
@@ -180,7 +247,7 @@ function ChatPageContent() {
         </div>
       </aside>
 
-      {/* ========== 中间栏：聊天窗口 ========== */}
+      {/* 中间栏：聊天窗口 */}
       <main className={`flex-1 flex flex-col ${!selectedConversation ? 'hidden md:flex' : 'flex'}`}>
         {selectedConversation ? (
           <>
@@ -197,48 +264,34 @@ function ChatPageContent() {
               </div>
               <div>
                 <div className="text-cream font-medium">
-                  {selectedConversation.other_user?.username || selectedConversation.other_user?.visitor_id || '未知用户'}
+                  {selectedConversation.other_user?.display_name || selectedConversation.other_user?.user_id?.slice(-8) || '未知用户'}
                 </div>
                 <div className="text-cream/40 text-xs">
-                  ID: {(selectedConversation.other_user?.visitor_id || '').slice(-6)}
+                  {initLoading ? '创建对话中...' : '在线'}
                 </div>
               </div>
             </div>
 
             {/* 消息列表 */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {messages.length === 0 ? (
+              {initLoading ? (
+                <div className="text-center text-cream/50 py-8">
+                  <div className="animate-pulse">
+                    <div className="text-3xl mb-2">💬</div>
+                    <p className="text-sm">正在创建对话...</p>
+                  </div>
+                </div>
+              ) : messages.length === 0 ? (
                 <div className="text-center text-cream/50 py-8">
                   <div className="text-3xl mb-2">💬</div>
                   <p className="text-sm">开始聊天吧</p>
                 </div>
               ) : (
-                messages.map((msg) => {
-                  const isMe = msg.sender_id === currentVisitorId
-                  return (
-                    <div
-                      key={msg.id}
-                      className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
-                    >
-                      <div className={`max-w-[70%] ${isMe ? 'order-2' : 'order-1'}`}>
-                        <div
-                          className={`px-4 py-2 rounded-2xl ${
-                            isMe
-                              ? 'bg-gold/20 text-cream rounded-br-md'
-                              : 'bg-wood-700/50 text-cream rounded-bl-md'
-                          }`}
-                        >
-                          <p className="whitespace-pre-wrap break-words">{msg.content}</p>
-                        </div>
-                        <p className={`text-cream/40 text-xs mt-1 ${isMe ? 'text-right' : 'text-left'}`}>
-                          {formatMessageTime(msg.created_at)}
-                        </p>
-                      </div>
-                    </div>
-                  )
-                })
+                <>
+                  {renderMessages()}
+                  <div ref={messagesEndRef} />
+                </>
               )}
-              <div ref={messagesEndRef} />
             </div>
 
             {/* 输入框 */}
@@ -250,11 +303,11 @@ function ChatPageContent() {
                   onChange={(e) => setNewMessage(e.target.value)}
                   placeholder="输入消息..."
                   className="input-field flex-1"
-                  disabled={sending}
+                  disabled={sending || initLoading}
                 />
                 <button
                   type="submit"
-                  disabled={!newMessage.trim() || sending}
+                  disabled={!newMessage.trim() || sending || initLoading}
                   className="btn-primary px-6 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   发送
@@ -275,6 +328,8 @@ function ChatPageContent() {
           </div>
         )}
       </main>
+      </>
+      )}
     </div>
   )
 }

@@ -480,9 +480,13 @@ export const getConversations = async () => {
         
         return {
           ...conv,
-          other_user: profile || {
+          other_user: profile ? {
+            user_id: profile.user_id,
+            display_name: profile.display_name,
+            avatar_url: profile.avatar_url
+          } : {
             user_id: otherUserId,
-            display_name: otherUserId,
+            display_name: otherUserId.slice(-8),
             avatar_url: null
           }
         }
